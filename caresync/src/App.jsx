@@ -1,437 +1,266 @@
+import { useState, useEffect, useRef } from 'react';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-
+// --- 1. STYLES (Enhanced for Technical Dashboard) ---
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
   @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
   :root {
-    --bg-body: #020617;
-    --bg-panel: rgba(30, 41, 59, 0.6);
-    --bg-panel-solid: #0f172a;
-    --bg-panel-light: #1e293b;
+    --bg-dark: #030712;
+    --bg-panel: rgba(17, 24, 39, 0.7);
+    --bg-panel-solid: #111827;
     
     --primary: #3b82f6;
-    --primary-glow: rgba(59, 130, 246, 0.6);
+    --primary-glow: rgba(59, 130, 246, 0.4);
     --accent: #8b5cf6;
-    --accent-glow: rgba(139, 92, 246, 0.5);
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
     
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
+    --text-main: #f9fafb;
+    --text-muted: #9ca3af;
     
-    --border: rgba(148, 163, 184, 0.1);
-    --border-active: rgba(59, 130, 246, 0.5);
-    --radius: 16px;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --border: rgba(255, 255, 255, 0.08);
+    --radius: 12px;
     
     --font-main: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    --header-height: 60px;
-    --nav-width: 240px;
-    --nav-height-mobile: 70px;
   }
 
   * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: var(--bg-body); color: var(--text-main); font-family: var(--font-main); }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: var(--bg-dark); color: var(--text-main); font-family: var(--font-main); }
 
-  /* Background Grid Pattern */
-  body::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+  /* Tech Background Grid */
+  body {
     background-image: 
       linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: -1;
+    background-size: 30px 30px;
   }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-  /* Animations */
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
-  @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(2); opacity: 0; } }
-  @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
-  @keyframes bg-pan { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+  @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
 
-  /* Layout */
-  #app-root { display: flex; height: 100vh; width: 100vw; background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 60%); overflow: hidden; }
+  #app-root { display: flex; height: 100vh; width: 100vw; flex-direction: column; }
   
-  /* Sidebar (Desktop) / Bottom Nav (Mobile) */
   .sidebar {
-    width: var(--nav-width);
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(20px);
+    width: 260px;
+    background: rgba(10, 10, 15, 0.95);
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column; padding: 1.5rem;
-    z-index: 30;
-    transition: var(--transition);
+    z-index: 20;
   }
 
   .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-  
-  .topbar { 
-    height: var(--header-height); 
-    border-bottom: 1px solid var(--border); 
-    display: flex; align-items: center; justify-content: space-between; 
-    padding: 0 1.5rem; 
-    background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(10px); 
-  }
+  .topbar { height: 60px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; background: rgba(3, 7, 18, 0.8); backdrop-filter: blur(10px); }
 
-  /* Responsive Grid */
   .dashboard-grid {
     padding: 1.5rem;
     display: grid;
-    /* Auto-fit makes it responsive automatically */
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     grid-auto-rows: min-content;
     gap: 1.5rem;
-    height: 100%; 
-    overflow-y: auto; 
-    padding-bottom: 100px; /* Space for mobile nav */
+    height: 100%; overflow-y: auto;
+    padding-bottom: 80px; /* Space for mobile nav if needed */
   }
 
-  /* Special Grid Spans */
-  .stat-card { grid-column: span 1; }
-  .map-card { grid-column: 1 / -1; min-height: 400px; } /* Full width on all screens */
-  .chart-card { grid-column: span 1; min-height: 300px; }
-  .log-card { grid-column: 1 / -1; height: 250px; }
-
-  @media (min-width: 1024px) {
-    .map-card { grid-column: span 3; min-height: 500px; }
-    .chart-card { grid-column: span 1; min-height: 500px; }
-    .log-card { grid-column: span 4; }
-  }
-
-  /* Cards with Glassmorphism */
+  /* Cards */
   .panel {
     background: var(--bg-panel); 
     border: 1px solid var(--border); 
     border-radius: var(--radius);
     padding: 1.25rem; 
-    display: flex; 
-    flex-direction: column; 
-    position: relative;
+    display: flex; flex-direction: column; 
     backdrop-filter: blur(12px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    transition: var(--transition);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
   }
-  .panel:hover { border-color: var(--border-active); transform: translateY(-2px); }
+  
+  .map-card { grid-column: 1 / -1; min-height: 400px; }
+  .analysis-card { grid-column: 1 / -1; }
 
-  .canvas-container { flex: 1; width: 100%; min-height: 250px; position: relative; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.2); border: 1px solid var(--border); }
+  /* Status Badges */
+  .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px; }
+  .badge.critical { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+  .badge.mild { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+  .badge.normal { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
   
-  /* UI Elements */
-  .btn { 
-    background: linear-gradient(135deg, var(--primary), var(--accent)); 
-    color: white; border: none; padding: 12px 24px; border-radius: 12px; 
-    font-weight: 600; cursor: pointer; transition: var(--transition); 
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
-    font-size: 0.95rem; position: relative; overflow: hidden; 
-    box-shadow: 0 4px 15px var(--primary-glow);
-  }
-  .btn:active { transform: scale(0.96); }
-  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid transparent; }
-  .btn-ghost:hover { background: rgba(255,255,255,0.05); color: white; }
-  .btn-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger); color: var(--danger); box-shadow: none; }
-  .btn-danger:hover { background: var(--danger); color: white; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-  
-  /* Navigation Items */
-  .nav-item {
-    padding: 14px; margin-bottom: 4px; border-radius: 12px; 
-    display: flex; align-items: center; gap: 12px; 
-    color: var(--text-muted); transition: var(--transition); cursor: pointer;
-  }
-  .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
-  .nav-item.active { background: rgba(59, 130, 246, 0.15); color: var(--primary); border: 1px solid rgba(59, 130, 246, 0.2); }
-  .nav-item i { font-size: 1.1rem; width: 24px; text-align: center; }
-  
-  /* Tables */
-  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 400px; }
-  .data-table th { text-align: left; color: var(--text-muted); padding: 12px; font-weight: 600; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  .data-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-main); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot.critical { background: var(--danger); animation: pulse-red 2s infinite; }
+
+  /* Resource Grid */
+  .resource-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+  .resource-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; transition: 0.2s; }
+  .resource-item:hover { background: rgba(255,255,255,0.06); border-color: var(--primary); }
+  .res-icon { font-size: 1.2rem; margin-bottom: 5px; color: var(--text-muted); }
+  .res-val { font-weight: 700; font-size: 1.1rem; }
+  .res-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+
+  /* Forecast Chart Container */
+  .forecast-chart { height: 200px; width: 100%; position: relative; margin-top: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; }
 
   /* Modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; }
   .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal { background: var(--bg-panel-solid); border: 1px solid var(--border); width: 100%; max-width: 600px; max-height: 90vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95); transition: transform 0.3s; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+  .modal { background: var(--bg-panel-solid); border: 1px solid var(--border); width: 100%; max-width: 800px; max-height: 90vh; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95); transition: 0.3s; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
   .modal-overlay.open .modal { transform: scale(1); }
-  .modal-header { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .modal-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
-  .modal-footer { padding: 1.25rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: rgba(255,255,255,0.02); }
-
-  /* Form */
-  .form-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 10px; font-size: 1rem; margin-bottom: 1rem; transition: var(--transition); }
-  .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+  .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); }
+  .modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
+  .modal-footer { padding: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: rgba(255,255,255,0.02); }
 
   /* Chat */
-  .ai-fab { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 50; transition: var(--transition); border: 2px solid rgba(255,255,255,0.1); }
-  .ai-fab:hover { transform: scale(1.1) rotate(10deg); }
-  .ai-panel { position: fixed; bottom: 0; right: 0; width: 100%; height: 100%; max-width: 400px; max-height: 80vh; background: var(--bg-panel-solid); border: 1px solid var(--border); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; transform: translateY(110%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 60; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); margin: 10px; }
-  .ai-panel.open { transform: translateY(0); }
+  .ai-fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4); z-index: 50; cursor: pointer; transition: transform 0.2s; }
+  .ai-fab:hover { transform: scale(1.1); }
+  .ai-panel { position: fixed; bottom: 100px; right: 30px; width: 400px; height: 600px; background: var(--bg-panel-solid); border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; transform-origin: bottom right; transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 50; }
+  .ai-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+  .msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; margin-bottom: 10px; font-size: 0.9rem; white-space: pre-wrap; }
+  .msg.ai { background: rgba(255,255,255,0.1); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; }
+  .msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+
+  /* Landing */
+  #landing-page { position: absolute; inset: 0; background: radial-gradient(circle at center, #1e293b 0%, #020617 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.8s; }
+  .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary); box-shadow: 0 0 20px var(--primary); animation: scan 3s linear infinite; opacity: 0.3; }
   
-  @media (min-width: 768px) {
-    .ai-panel { position: fixed; bottom: 100px; right: 30px; width: 380px; height: 550px; border-radius: 16px; margin: 0; transform: scale(0.9) translateY(20px); opacity: 0; }
-    .ai-panel.open { transform: scale(1) translateY(0); opacity: 1; }
-    .ai-fab { bottom: 30px; right: 30px; }
-  }
-
-  .msg { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 0.95rem; animation: fadeIn 0.3s ease; line-height: 1.5; white-space: pre-wrap; margin-bottom: 8px; }
-  .msg.ai { background: var(--bg-panel-light); align-self: flex-start; border-bottom-left-radius: 4px; color: var(--text-main); border: 1px solid var(--border); }
-  .msg.user { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 4px; color: white; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
-
-  /* Landing Page - Winner Level */
-  #landing-page { 
-    position: absolute; inset: 0; 
-    background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #020617);
-    background-size: 400% 400%;
-    animation: bg-pan 15s ease infinite;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; 
-  }
-  
-  .scan-line {
-    position: absolute; top: 0; left: 0; width: 100%; height: 5px;
-    background: rgba(59, 130, 246, 0.8);
-    box-shadow: 0 0 20px var(--primary), 0 0 60px var(--primary);
-    animation: scan 3s linear infinite;
-    z-index: 101; opacity: 0.5;
-  }
-
-  .glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 3rem;
-    border-radius: 24px;
-    text-align: center;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    max-width: 90%;
-    width: 500px;
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .logo-pulse {
-    width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--accent));
-    border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 2rem;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-    animation: pulse-ring 2s infinite;
-  }
-
-  /* Utilities */
-  .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-  .badge.critical { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
-  .badge.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
-  .badge.stable { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
-  .flex { display: flex; }
-  .justify-between { justify-content: space-between; }
-  .items-center { align-items: center; }
-  .font-bold { font-weight: 700; }
-  .text-muted { color: var(--text-muted); }
-  .text-sm { font-size: 0.875rem; }
-  .text-xs { font-size: 0.75rem; }
-
-  /* --- MOBILE RESPONSIVENESS OVERRIDES --- */
-  @media (max-width: 768px) {
-    #app-root { flex-direction: column; }
-    
-    /* Sidebar becomes Bottom Nav */
-    .sidebar {
-      width: 100%; height: var(--nav-height-mobile);
-      flex-direction: row; justify-content: space-around;
-      padding: 0; border-right: none; border-top: 1px solid var(--border);
-      position: fixed; bottom: 0; left: 0;
-      background: rgba(15, 23, 42, 0.95);
-    }
-    
-    /* Hide brand on mobile nav, show icons only */
-    .sidebar .brand { display: none; }
-    .sidebar nav { display: flex; flex-direction: row; width: 100%; justify-content: space-around; align-items: center; }
-    .nav-item { flex-direction: column; padding: 8px; gap: 4px; margin: 0; background: transparent !important; border: none !important; color: var(--text-muted); }
-    .nav-item span { font-size: 0.7rem; display: block; }
-    .nav-item.active { color: var(--primary); background: transparent !important; }
-    .nav-item.active i { transform: scale(1.2); transition: 0.2s; }
-
-    /* Adjust main content for bottom nav */
-    .main-content { height: calc(100vh - var(--nav-height-mobile)); }
-    .dashboard-grid { padding-bottom: 90px; } /* Extra padding */
-    
-    /* Typography scaling */
-    h1 { font-size: 1.5rem !important; }
-    h2 { font-size: 1.25rem !important; }
-    
-    /* Modals */
-    .modal { width: 100%; height: 100%; max-height: none; border-radius: 0; }
-    .modal-overlay { padding: 0; }
-  }
+  /* Buttons */
+  .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+  .btn:hover { background: #2563eb; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--text-muted); }
+  .btn-ghost:hover { color: white; }
 `;
 
-// --- 2. API HELPERS ---
-const API_BASE = 'http://localhost:8000/api';
-
-async function apiFetch(endpoint, options = {}) {
-  try {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      headers: { 'Content-Type': 'application/json', ...options.headers },
-      ...options,
-    });
-    if (!res.ok) throw new Error(`API Error: ${res.status}`);
-    return await res.json();
-  } catch (error) {
-    console.error("API Fetch Failed:", error);
-    // Return null to allow fallback UI to handle it gracefully
-    return null; 
+// --- 2. MOCK DATA: CALIFORNIA HOSPITALS & FORECASTING ---
+const DEMO_HOSPITALS = [
+  {
+    id: 'ca-cedars', name: 'Cedars-Sinai Medical', region: 'Los Angeles', 
+    position: { x: 0.3, y: 0.6 }, status: 'warning',
+    inventory: [
+      { id: 'r1', name: 'ICU Beds', current: 45, total: 50, unit: 'units', threshold: 10, type: 'bed' },
+      { id: 'r2', name: 'Oxygen Cylinders', current: 120, total: 200, unit: 'tanks', threshold: 50, type: 'gas' },
+      { id: 'r3', name: 'Ventilators', current: 8, total: 30, unit: 'machines', threshold: 5, type: 'machine' },
+      { id: 'r4', name: 'Pacemakers', current: 15, total: 20, unit: 'units', threshold: 5, type: 'device' }
+    ],
+    forecast: { 
+      trend: 'increasing', 
+      nextMonthDemand: { 'Oxygen Cylinders': 250, 'Pacemakers': 5 },
+      projectedDeficit: { 'Oxygen Cylinders': 130 } // Current 120 vs Demand 250
+    }
+  },
+  {
+    id: 'ca-ucsf', name: 'UCSF Medical Center', region: 'San Francisco', 
+    position: { x: 0.15, y: 0.35 }, status: 'critical',
+    inventory: [
+      { id: 'r1', name: 'ICU Beds', current: 5, total: 60, unit: 'units', threshold: 10, type: 'bed' },
+      { id: 'r2', name: 'Oxygen Cylinders', current: 80, total: 150, unit: 'tanks', threshold: 40, type: 'gas' },
+      { id: 'r3', name: 'BP Monitors', current: 12, total: 100, unit: 'machines', threshold: 20, type: 'machine' },
+      { id: 'r4', name: 'Dialysis Machines', current: 2, total: 15, unit: 'machines', threshold: 5, type: 'machine' }
+    ],
+    forecast: {
+      trend: 'surge',
+      nextMonthDemand: { 'ICU Beds': 80, 'Dialysis Machines': 10 },
+      projectedDeficit: { 'ICU Beds': 75 } // Critical Deficit
+    }
+  },
+  {
+    id: 'ca-stanford', name: 'Stanford Hospital', region: 'Palo Alto', 
+    position: { x: 0.25, y: 0.4 }, status: 'stable',
+    inventory: [
+      { id: 'r1', name: 'ICU Beds', current: 55, total: 60, unit: 'units', threshold: 10, type: 'bed' },
+      { id: 'r2', name: 'Oxygen Cylinders', current: 300, total: 300, unit: 'tanks', threshold: 50, type: 'gas' },
+      { id: 'r3', name: 'MRI Machines', current: 3, total: 3, unit: 'machines', threshold: 1, type: 'machine' }
+    ],
+    forecast: {
+      trend: 'stable',
+      nextMonthDemand: {},
+      projectedDeficit: {}
+    }
   }
-}
+];
 
 // --- 3. COMPONENTS ---
 
-// Radar Map
-const RadarMap = ({ hospitals, onSelectHospital }) => {
+const ForecastCanvas = ({ forecastData }) => {
   const canvasRef = useRef(null);
-  const containerRef = useRef(null);
-
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-
-    const ctx = canvas.getContext('2d');
-    let animationId;
-    let angle = 0;
-
-    // Resize handler
-    const resize = () => {
-      canvas.width = container.clientWidth;
-      canvas.height = container.clientHeight;
-    };
-    window.addEventListener('resize', resize);
-    resize();
-
-    // Draw Loop
-    const draw = () => {
-      const { width, height } = canvas;
-      ctx.clearRect(0, 0, width, height);
-      
-      const cx = width / 2;
-      const cy = height / 2;
-      const maxR = Math.min(cx, cy) * 0.85;
-
-      // Draw Grid
-      ctx.strokeStyle = 'rgba(59, 130, 246, 0.1)';
-      ctx.lineWidth = 1;
-      for(let i=1; i<=4; i++) {
-        ctx.beginPath(); ctx.arc(cx, cy, maxR * (i/4), 0, Math.PI * 2); ctx.stroke();
-      }
-      ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, height); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(width, cy); ctx.stroke();
-      
-      // Radar Sweep
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(angle);
-      const grad = ctx.createConicGradient(0, 0, 0);
-      grad.addColorStop(0, 'rgba(59, 130, 246, 0)');
-      grad.addColorStop(0.1, 'rgba(59, 130, 246, 0.15)');
-      ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0, 0, maxR, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-      angle += 0.01;
-
-      // Nodes
-      hospitals.forEach(h => {
-        const x = (h.position?.x || 0.5) * width;
-        const y = (h.position?.y || 0.5) * height;
-        const status = h.status || 'stable';
-        
-        let color = '#10b981';
-        if (status === 'critical') color = '#ef4444';
-        else if (status === 'warning') color = '#f59e0b';
-
-        // Critical Pulse
-        if (status === 'critical') {
-          ctx.fillStyle = color;
-          ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 300) * 0.3;
-          ctx.beginPath(); ctx.arc(x, y, 15 + Math.sin(Date.now()/200)*5, 0, Math.PI * 2); ctx.fill();
-          ctx.globalAlpha = 1.0;
-        }
-
-        ctx.fillStyle = color;
-        ctx.shadowColor = color; ctx.shadowBlur = 10;
-        ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
-        ctx.shadowBlur = 0;
-
-        // Label
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 10px Inter';
-        ctx.textAlign = 'center';
-        ctx.fillText(h.name, x, y + 18);
+    const ctx = canvasRef.current.getContext('2d');
+    const w = canvasRef.width = canvasRef.parentElement.clientWidth;
+    const h = canvasRef.height = canvasRef.parentElement.clientHeight;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // Draw Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.beginPath(); ctx.moveTo(30, h-30); ctx.lineTo(w, h-30); ctx.stroke(); // X axis
+    ctx.beginPath(); ctx.moveTo(30, 0); ctx.lineTo(30, h-30); ctx.stroke(); // Y axis
+    
+    // Simulated Data for Demo: Supply (Blue) vs Demand (Red dashed)
+    const drawLine = (dataPoints, color, dashed = false) => {
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      if(dashed) ctx.setLineDash([5, 5]);
+      dataPoints.forEach((val, i) => {
+        const x = 30 + (i * (w - 40) / (dataPoints.length - 1));
+        const y = (h - 30) - (val / 400) * (h - 30); // Scale 0-400
+        if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       });
-
-      animationId = requestAnimationFrame(draw);
+      ctx.stroke();
+      ctx.setLineDash([]);
     };
+    
+    // Mocking 30 days trend
+    const supplyTrend = Array.from({length: 10}, (_, i) => forecastData.current + (Math.random()*20 - 10));
+    const demandTrend = Array.from({length: 10}, (_, i) => forecastData.current * 0.8 + (i * 15) + (Math.random()*10));
+    
+    drawLine(supplyTrend, '#3b82f6');
+    drawLine(demandTrend, '#ef4444', true);
+    
+    // Legend
+    ctx.font = '10px Inter';
+    ctx.fillStyle = '#3b82f6'; ctx.fillText('Current Supply', 40, 20);
+    ctx.fillStyle = '#ef4444'; ctx.fillText('Projected Demand', 120, 20);
+    
+  }, [forecastData]);
+  
+  return <canvas ref={canvasRef} className="forecast-chart" />;
+};
 
-    draw();
+const ResourceCard = ({ item }) => {
+  // Determine Criticality
+  const isCritical = item.current < item.threshold;
+  const isMild = item.current < item.threshold * 2;
+  
+  let statusClass = 'normal';
+  if (isCritical) statusClass = 'critical';
+  else if (isMild) statusClass = 'mild';
 
-    // Click Handler
-    const handleClick = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      hospitals.forEach(h => {
-        const x = (h.position?.x || 0.5) * canvas.width;
-        const y = (h.position?.y || 0.5) * canvas.height;
-        const dist = Math.sqrt((mouseX - x)**2 + (mouseY - y)**2);
-        
-        if (dist < 20) { // Larger touch target for mobile
-          onSelectHospital(h);
-        }
-      });
-    };
-
-    canvas.addEventListener('click', handleClick);
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      canvas.removeEventListener('click', handleClick);
-      cancelAnimationFrame(animationId);
-    };
-  }, [hospitals, onSelectHospital]);
+  const getIcon = (type) => {
+    if (type === 'bed') return 'fa-bed-pulse';
+    if (type === 'gas') return 'fa-wind';
+    if (type === 'device') return 'fa-heart-pulse';
+    return 'fa-microchip'; // machine
+  };
 
   return (
-    <div ref={containerRef} className="canvas-container">
-      <canvas ref={canvasRef} style={{width: '100%', height: '100%'}} />
+    <div className="resource-item">
+      <div className="res-icon">
+        <i className={`fa-solid ${getIcon(item.type)}`} style={{color: isCritical ? 'var(--danger)' : 'var(--primary)'}}></i>
+      </div>
+      <div className="res-val">{item.current}<span style={{fontSize:'0.7rem', color:'var(--text-muted)'}}>/{item.total}</span></div>
+      <div className="res-label">{item.name}</div>
+      <span className={`badge ${statusClass}`} style={{marginTop: '8px', fontSize: '0.6rem'}}>
+        {statusClass}
+      </span>
     </div>
   );
 };
 
-// Modals
-const HospitalDetailModal = ({ hospital, onClose, onOpenOrder }) => {
-  const [details, setDetails] = useState(null);
-  
-  useEffect(() => {
-    if (!hospital) return;
-    const fetchDetails = async () => {
-      const [invData, alertData] = await Promise.all([
-        apiFetch(`/hospitals/${hospital.id}/inventory`),
-        apiFetch(`/hospitals/${hospital.id}/alerts?status=active`)
-      ]);
-      setDetails({ 
-        inventory: invData?.inventory || [], 
-        alerts: alertData?.alerts || [] 
-      });
-    };
-    fetchDetails();
-  }, [hospital]);
+const HospitalModal = ({ hospital, onClose, onProcure }) => {
+  const [activeTab, setActiveTab] = useState('inventory');
 
   if (!hospital) return null;
 
@@ -440,46 +269,70 @@ const HospitalDetailModal = ({ hospital, onClose, onOpenOrder }) => {
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <h2 className="font-bold">{hospital.name}</h2>
-            <p className="text-xs text-muted flex items-center gap-2 mt-1">
-              <span className={`badge ${hospital.status}`}>{hospital.status}</span>
-              {hospital.region}
-            </p>
+            <h2 className="font-bold text-xl">{hospital.name}</h2>
+            <p className="text-sm text-muted">{hospital.region} • ID: {hospital.id.toUpperCase()}</p>
           </div>
-          <button onClick={onClose} className="btn-ghost"><i className="fa-solid fa-xmark fa-lg"></i></button>
+          <button className="btn-ghost" onClick={onClose}><i className="fa-solid fa-xmark fa-lg"></i></button>
         </div>
+        
+        <div className="flex border-b border-white/10 px-6">
+          <button 
+            className={`py-3 px-4 text-sm font-medium ${activeTab === 'inventory' ? 'text-primary border-b-2 border-primary' : 'text-muted'}`}
+            onClick={() => setActiveTab('inventory')}
+          >Live Inventory</button>
+          <button 
+            className={`py-3 px-4 text-sm font-medium ${activeTab === 'forecast' ? 'text-primary border-b-2 border-primary' : 'text-muted'}`}
+            onClick={() => setActiveTab('forecast')}
+          >AI Forecasting</button>
+        </div>
+
         <div className="modal-body">
-          <div className="flex gap-4 flex-col lg:flex-row">
-            <div style={{flex: 1}}>
-              <h3 className="font-bold text-sm text-primary mb-3">INVENTORY</h3>
-              {details?.inventory.length ? (
-                <table className="data-table">
-                  <thead><tr><th>Item</th><th>Lvl</th></tr></thead>
-                  <tbody>
-                    {details.inventory.slice(0, 5).map((item, i) => (
-                      <tr key={i}>
-                        <td>{item.resource}</td>
-                        <td><span className={`badge ${item.status}`}>{item.current_level}</span></td>
-                      </tr>
+          {activeTab === 'inventory' ? (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold">Operational Assets</h3>
+                <span className={`badge ${hospital.status}`}>
+                  <div className={`dot ${hospital.status}`}></div> {hospital.status}
+                </span>
+              </div>
+              <div className="resource-grid">
+                {hospital.inventory.map((item, i) => <ResourceCard key={i} item={item} />)}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg mb-4">
+                <h4 className="text-primary font-bold mb-1"><i className="fa-solid fa-brain mr-2"></i>AI Predictive Analysis</h4>
+                <p className="text-xs text-muted">Based on 30-day consumption trends and regional flu outbreak data.</p>
+              </div>
+              
+              <div className="mb-6">
+                <h4 className="font-bold text-sm mb-2">Projected Deficit (Next 30 Days)</h4>
+                {Object.keys(hospital.forecast.projectedDeficit).length > 0 ? (
+                  <div className="space-y-2">
+                    {Object.entries(hospital.forecast.projectedDeficit).map(([key, val]) => (
+                      <div key={key} className="flex items-center justify-between p-3 bg-red-500/10 border border-red-500/30 rounded">
+                        <span className="font-medium text-sm">{key}</span>
+                        <span className="text-danger font-bold">-{val} units</span>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              ) : <p className="text-muted text-sm">No data available.</p>}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted">No significant deficits projected.</p>
+                )}
+              </div>
+
+              <div>
+                <h4 className="font-bold text-sm mb-2">Trend Visualization</h4>
+                <ForecastCanvas forecastData={{ current: hospital.inventory[0].current }} />
+              </div>
             </div>
-            <div style={{flex: 1}}>
-              <h3 className="font-bold text-sm text-danger mb-3">ALERTS</h3>
-              {details?.alerts.length ? details.alerts.map((alert, i) => (
-                <div key={i} className="p-2 mb-2 bg-white/5 rounded border border-white/5 text-xs">
-                  <div className="font-bold text-danger mb-1">{alert.message}</div>
-                  <div className="text-muted">{new Date(alert.created_at).toLocaleTimeString()}</div>
-                </div>
-              )) : <p className="text-muted text-sm">No active alerts.</p>}
-            </div>
-          </div>
+          )}
         </div>
+
         <div className="modal-footer">
-          <button className="btn" onClick={() => onOpenOrder(hospital)}>
-            <i className="fa-solid fa-cart-plus"></i> Procure Supplies
+          <button className="btn" onClick={() => onProcure(hospital)}>
+            <i className="fa-solid fa-cart-plus"></i> Initiate Procurement
           </button>
         </div>
       </div>
@@ -487,76 +340,9 @@ const HospitalDetailModal = ({ hospital, onClose, onOpenOrder }) => {
   );
 };
 
-const ProcurementModal = ({ hospital, onClose, onSuccess }) => {
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    const formData = new FormData(e.target);
-    try {
-      await apiFetch('/procurement/orders', {
-        method: 'POST',
-        body: JSON.stringify({
-          hospital_id: hospital.id,
-          supplier_id: 'mock-supplier-1',
-          resource_name: formData.get('resource'),
-          quantity: parseInt(formData.get('quantity')),
-          notes: formData.get('notes')
-        })
-      });
-      onSuccess('Order created successfully');
-      onClose();
-    } catch (err) {
-      alert("Error creating order");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="modal-overlay open" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="font-bold">New Order</h2>
-          <button onClick={onClose} className="btn-ghost"><i className="fa-solid fa-xmark"></i></button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            <label className="text-xs text-muted uppercase font-bold">Resource</label>
-            <select name="resource" className="form-input">
-              <option>Medical Oxygen</option>
-              <option>ICU Ventilators</option>
-              <option>PPE Kits</option>
-            </select>
-            
-            <label className="text-xs text-muted uppercase font-bold">Quantity</label>
-            <input name="quantity" type="number" className="form-input" defaultValue="50" required />
-            
-            <label className="text-xs text-muted uppercase font-bold">Notes</label>
-            <input name="notes" type="text" className="form-input" placeholder="Urgency level..." />
-          </div>
-          <div className="modal-footer">
-            <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn" disabled={submitting}>
-              {submitting ? 'Processing...' : 'Confirm'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-// Chat
 const ChatPanel = ({ isOpen, onClose, onSend, messages, isLoading }) => {
   const [input, setInput] = useState('');
-  const endRef = useRef(null);
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
-
+  
   const submit = (e) => {
     e.preventDefault();
     if(!input.trim()) return;
@@ -567,10 +353,8 @@ const ChatPanel = ({ isOpen, onClose, onSend, messages, isLoading }) => {
   return (
     <>
       <div className={`ai-panel ${isOpen ? 'open' : ''}`}>
-        <div className="modal-header">
-          <span className="font-bold flex items-center gap-2">
-            <i className="fa-solid fa-sparkles text-accent"></i> AI Agent
-          </span>
+        <div className="modal-header" style={{padding: '1rem'}}>
+          <span className="font-bold text-primary"><i className="fa-solid fa-robot mr-2"></i>CareSync AI Agent</span>
           <button onClick={onClose} className="btn-ghost"><i className="fa-solid fa-chevron-down"></i></button>
         </div>
         <div className="modal-body flex flex-col">
@@ -579,22 +363,16 @@ const ChatPanel = ({ isOpen, onClose, onSend, messages, isLoading }) => {
               <div key={i} className={`msg ${m.role === 'user' ? 'user' : 'ai'}`}>{m.content}</div>
             ))}
             {isLoading && <div className="msg ai"><i className="fa-solid fa-circle-notch fa-spin"></i></div>}
-            <div ref={endRef} />
           </div>
         </div>
         <div className="modal-footer">
           <form onSubmit={submit} className="flex gap-2 w-full">
-            <input 
-              className="form-input" style={{marginBottom: 0}} 
-              placeholder="Ask AI..." value={input} onChange={e => setInput(e.target.value)} 
-            />
-            <button type="submit" className="btn" style={{padding: '0 16px'}}><i className="fa-solid fa-paper-plane"></i></button>
+            <input className="w-full bg-black/30 border border-white/10 text-white px-3 py-2 rounded text-sm" placeholder="Ask about inventory..." value={input} onChange={e => setInput(e.target.value)} />
+            <button type="submit" className="btn px-3"><i className="fa-solid fa-paper-plane"></i></button>
           </form>
         </div>
       </div>
-      <div className="ai-fab" onClick={() => onClose()}>
-        <i className="fa-solid fa-robot"></i>
-      </div>
+      <div className="ai-fab" onClick={() => onClose()}><i className="fa-solid fa-robot"></i></div>
     </>
   );
 };
@@ -603,16 +381,18 @@ const ChatPanel = ({ isOpen, onClose, onSend, messages, isLoading }) => {
 export default function App() {
   const [view, setView] = useState('landing');
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState(null);
+  
+  // State
+  const [hospitals, setHospitals] = useState([]);
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [procurementTarget, setProcurementTarget] = useState(null);
   
   // Chat
   const [chatOpen, setChatOpen] = useState(false);
+  const [messages, setMessages] = useState([{role: 'assistant', content: 'Hello. I am connected to the California hospital network. I can analyze inventory trends and predict machinery needs.'}]);
   const [chatLoading, setChatLoading] = useState(false);
-  const [messages, setMessages] = useState([{role: 'assistant', content: 'System Ready. How can I assist with logistics?'}]);
-  const [toast, setToast] = useState(null);
 
+  // Initialize Styles
   useEffect(() => {
     const style = document.createElement("style");
     style.innerText = styles;
@@ -620,162 +400,131 @@ export default function App() {
     return () => style.remove();
   }, []);
 
-  useEffect(() => {
-    if (view === 'dashboard') {
-      const load = async () => {
-        const res = await apiFetch('/dashboard/summary');
-        if (res) setData(res);
-        else {
-           // Fallback Mock Data for demo if backend is off
-           setData({
-             totals: { hospitals: 4, active_alerts: 1 },
-             hospitals: [
-               { id: '1', name: 'AIIMS Delhi', position: {x:0.8, y:0.3}, status: 'critical' },
-               { id: '2', name: 'Kokilaben', position: {x:0.2, y:0.7}, status: 'warning' }
-             ],
-             agent_logs: [{agent: 'System', message: 'Mock mode active', created_at: new Date().toISOString()}]
-           });
-        }
-      };
-      load();
-      const int = setInterval(load, 15000);
-      return () => clearInterval(int);
-    }
-  }, [view]);
-
-  const handleChat = async (txt) => {
-    setMessages(p => [...p, {role: 'user', content: txt}]);
-    setChatLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/chat`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ message: txt, history: messages, hospital_id: data?.hospitals[0]?.id })
-      });
-      const json = await res.json();
-      setMessages(p => [...p, {role: 'assistant', content: json.response}]);
-    } catch (e) {
-      setMessages(p => [...p, {role: 'assistant', content: 'Backend unreachable. Ensure FastAPI is running on port 8000.'}]);
-    }
-    setChatLoading(false);
+  // Load Data (Demo Mode)
+  const loadData = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setHospitals(DEMO_HOSPITALS);
+      setLoading(false);
+      setView('dashboard');
+    }, 1500);
   };
 
-  const enterDashboard = () => {
-    setLoading(true);
-    setTimeout(() => { setLoading(false); setView('dashboard'); }, 1500);
+  // Agentic AI Logic (Simulated for Demo)
+  const handleChat = async (text) => {
+    setMessages(p => [...p, {role: 'user', content: text}]);
+    setChatLoading(true);
+
+    // Simulate API call
+    await new Promise(r => setTimeout(r, 1500));
+
+    let response = "";
+    const lowerText = text.toLowerCase();
+
+    // Context Awareness Logic
+    if (lowerText.includes('pacemaker')) {
+      const stanford = hospitals.find(h => h.id === 'ca-stanford');
+      if (stanford) {
+        const pacs = stanford.inventory.find(i => i.name === 'Pacemakers');
+        response = `Stanford Hospital currently has ${pacs.current}/${pacs.total} Pacemakers. Status: ${pacs.current < pacs.threshold ? 'CRITICAL' : 'NORMAL'}. Demand is stable.`;
+      } else {
+        response = "I couldn't find specific Pacemaker data in the current dataset.";
+      }
+    } else if (lowerText.includes('oxygen') || lowerText.includes('cedars')) {
+      const cedars = hospitals.find(h => h.id === 'ca-cedars');
+      const oxy = cedars.inventory.find(i => i.name === 'Oxygen Cylinders');
+      response = `Cedars-Sinai Oxygen levels are at ${oxy.current} tanks. AI Forecast predicts a deficit of ${cedars.forecast.projectedDeficit['Oxygen Cylinders']} tanks next month based on current consumption. I recommend placing an order now.`;
+    } else if (lowerText.includes('ucsf') || lowerText.includes('bed')) {
+      const ucsf = hospitals.find(h => h.id === 'ca-ucsf');
+      const bed = ucsf.inventory.find(i => i.name === 'ICU Beds');
+      response = `UCSF is in CRITICAL condition. ICU Bed capacity is at ${bed.current}/${bed.total}. Projected demand is 80 beds next month. Immediate intervention required.`;
+    } else {
+      response = "I can provide analysis on Bed Counts, Oxygen Levels, and Machinery (Pacemakers, Ventilators) for Cedars-Sinai, UCSF, and Stanford. Please specify a resource.";
+    }
+
+    setMessages(p => [...p, {role: 'assistant', content: response}]);
+    setChatLoading(false);
   };
 
   return (
     <>
-      {/* Toast */}
-      {toast && (
-        <div style={{position: 'fixed', top: 20, right: 20, background: 'var(--success)', color: 'white', padding: '12px 24px', borderRadius: '8px', zIndex: 200, animation: 'fadeIn 0.3s'}}>
-          {toast}
-        </div>
-      )}
-
       {loading && (
-        <div style={{position: 'fixed', inset: 0, background: 'var(--bg-body)', zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-          <i className="fa-solid fa-circle-notch fa-spin fa-3x text-primary mb-4"></i>
-          <h3 className="font-bold">Authenticating...</h3>
+        <div style={{position:'fixed', inset:0, background:'var(--bg-dark)', zIndex:200, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+          <div style={{width:'50px', height:'50px', border:'3px solid rgba(59,130,246,0.3)', borderTopColor:'var(--primary)', borderRadius:'50%', animation:'spin 1s linear infinite'}}></div>
+          <h3 className="mt-4 font-bold text-primary">Loading California Network...</h3>
         </div>
       )}
 
-      {/* Landing Page */}
       {view === 'landing' && (
         <div id="landing-page">
           <div className="scan-line"></div>
-          <div className="glass-card">
-            <div className="logo-pulse">
-              <i className="fa-solid fa-heart-pulse fa-2x text-white"></i>
-            </div>
-            <h1 className="font-bold" style={{fontSize: '2.5rem', marginBottom: '0.5rem', color: 'white', lineHeight: 1.1}}>
-              CareSync <span style={{color: 'var(--primary)'}}>AI</span>
+          <div style={{textAlign:'center', zIndex:10}}>
+            <h1 className="font-bold" style={{fontSize:'3.5rem', marginBottom:'0.5rem', background:'linear-gradient(to right, #fff, #3b82f6)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>
+              CareSync <span className="text-primary">Ops</span>
             </h1>
-            <p className="text-muted mb-8">Autonomous Healthcare Intelligence Infrastructure</p>
-            <button className="btn" onClick={enterDashboard} style={{width: '100%', padding: '16px'}}>
-              INITIALIZE SYSTEM
+            <p className="text-muted mb-8 text-lg">Autonomous Hospital Operations & Predictive Logistics</p>
+            <button className="btn" onClick={loadData} style={{padding:'16px 48px', fontSize:'1.2rem', borderRadius:'12px'}}>
+              <i className="fa-solid fa-satellite-dish"></i> Initialize Dashboard
             </button>
-            <p className="text-xs text-muted mt-4">v2.0.4 • Secure Connection</p>
           </div>
         </div>
       )}
 
-      {/* Dashboard */}
       {view === 'dashboard' && (
         <div id="app-root">
           <aside className="sidebar">
-            <div className="brand" style={{fontSize: '1.1rem', fontWeight: '800', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '10px', color: 'white'}}>
-              <i className="fa-solid fa-heart-pulse text-primary"></i>
-              CareSync
+            <div className="mb-8 flex items-center gap-2">
+              <i className="fa-solid fa-heart-pulse text-primary fa-lg"></i>
+              <span className="font-bold text-xl">CareSync</span>
             </div>
-            <nav>
-              <div className="nav-item active">
-                <i className="fa-solid fa-grid-2"></i>
-                <span>Dashboard</span>
-              </div>
-              <div className="nav-item">
-                <i className="fa-solid fa-map"></i>
-                <span>Map</span>
-              </div>
-              <div className="nav-item">
-                <i className="fa-solid fa-box-open"></i>
-                <span>Inventory</span>
-              </div>
-              <div className="nav-item">
-                <i className="fa-solid fa-user-doctor"></i>
-                <span>Staff</span>
-              </div>
+            <nav className="flex flex-col gap-2">
+              <div className="p-3 rounded bg-white/5 text-white font-medium flex items-center gap-3 border border-white/10"><i className="fa-solid fa-chart-line text-primary"></i> Dashboard</div>
+              <div className="p-3 rounded text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-3"><i className="fa-solid fa-hospital"></i> Facilities</div>
+              <div className="p-3 rounded text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-3"><i className="fa-solid fa-boxes-stacked"></i> Inventory</div>
             </nav>
           </aside>
 
           <main className="main-content">
             <header className="topbar">
-              <h2 className="font-bold text-lg">Command Center</h2>
-              <div className="flex items-center gap-3">
-                <div className="hidden md:block text-right">
-                  <div className="font-bold text-sm">Dr. Chen</div>
-                  <div className="text-xs text-muted">CMO</div>
-                </div>
-                <div style={{width: '36px', height: '36px', borderRadius: '50%', background: '#334155', overflow:'hidden'}}>
-                  <img src="https://picsum.photos/seed/doc/100/100" alt="Profile" style={{width:'100%', height:'100%'}} />
-                </div>
+              <h2 className="font-bold">California Operations Center</h2>
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-primary border border-primary/30 px-2 py-1 rounded">LIVE</span>
+                <div className="w-8 h-8 rounded-full bg-gray-700 border border-gray-500"></div>
               </div>
             </header>
 
             <div className="dashboard-grid">
-              {/* Stat Cards */}
-              <div className="panel stat-card">
-                <div className="flex justify-between items-start">
-                  <div><p className="text-muted text-xs uppercase">Active Alerts</p><h1 className="font-bold text-2xl text-danger">{data?.totals?.active_alerts || 0}</h1></div>
-                  <i className="fa-solid fa-triangle-exclamation text-danger"></i>
+              {/* Summary Stats */}
+              {hospitals.map(h => (
+                <div key={h.id} className="panel" onClick={() => setSelectedHospital(h)} style={{cursor:'pointer'}}>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold">{h.name}</h3>
+                    <span className={`badge ${h.status}`}><div className={`dot ${h.status}`}></div></span>
+                  </div>
+                  <p className="text-sm text-muted mb-4">{h.region}</p>
+                  <div className="text-xs text-primary font-mono">View Analysis &rarr;</div>
                 </div>
-              </div>
-              <div className="panel stat-card">
-                <div className="flex justify-between items-start">
-                  <div><p className="text-muted text-xs uppercase">Facilities</p><h1 className="font-bold text-2xl text-primary">{data?.totals?.hospitals || 0}</h1></div>
-                  <i className="fa-solid fa-hospital text-primary"></i>
-                </div>
-              </div>
-              
-              {/* Map */}
-              <div className="panel map-card">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-bold text-sm">LIVE SATELLITE FEED</h3>
-                  <span className="badge stable">ONLINE</span>
-                </div>
-                <RadarMap hospitals={data?.hospitals || []} onSelectHospital={setSelectedHospital} />
-              </div>
+              ))}
 
-              {/* Logs */}
-              <div className="panel log-card">
-                <h3 className="font-bold text-sm mb-3">SYSTEM LOGS</h3>
-                <div style={{overflowY: 'auto', flex: 1}}>
-                  {data?.agent_logs?.map((log, i) => (
-                    <div key={i} className="flex items-center gap-3 text-xs py-2 border-b border-white/5">
-                      <span className="text-primary font-mono">{new Date(log.created_at).toLocaleTimeString()}</span>
-                      <span className="text-accent font-bold">[{log.agent || 'SYS'}]</span>
-                      <span className="text-muted truncate">{log.message}</span>
+              {/* Detailed Analysis Panel */}
+              <div className="panel analysis-card">
+                <h3 className="font-bold mb-4 border-b border-white/10 pb-2">Network Forecasting Analysis (Next 30 Days)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {hospitals.map(h => (
+                    <div key={h.id} className="bg-white/5 p-4 rounded-lg border border-white/5">
+                      <div className="flex justify-between mb-2">
+                        <span className="font-bold text-sm">{h.name}</span>
+                        <i className={`fa-solid fa-arrow-trend-${h.forecast.trend === 'increasing' ? 'up text-warning' : (h.forecast.trend === 'surge' ? 'up text-danger' : 'right text-success')}`}></i>
+                      </div>
+                      {Object.keys(h.forecast.projectedDeficit).length > 0 ? (
+                        <div className="text-danger text-sm">
+                          {Object.entries(h.forecast.projectedDeficit).map(([k,v]) => (
+                            <div key={k} className="mb-1"><i className="fa-solid fa-triangle-exclamation mr-1"></i> {k}: -{v}</div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-success text-sm"><i className="fa-solid fa-check mr-1"></i> Stable</div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -784,9 +533,18 @@ export default function App() {
           </main>
 
           <ChatPanel isOpen={chatOpen} onClose={() => setChatOpen(!chatOpen)} onSend={handleChat} messages={messages} isLoading={chatLoading} />
-          
-          {selectedHospital && <HospitalDetailModal hospital={selectedHospital} onClose={() => setSelectedHospital(null)} onOpenOrder={setProcurementTarget} />}
-          {procurementTarget && <ProcurementModal hospital={procurementTarget} onClose={() => setProcurementTarget(null)} onSuccess={setToast} />}
+          {selectedHospital && <HospitalModal hospital={selectedHospital} onClose={() => setSelectedHospital(null)} onProcure={setProcurementTarget} />}
+          {procurementTarget && (
+            <div className="modal-overlay open" onClick={() => setProcurementTarget(null)}>
+              <div className="modal" style={{maxWidth:'400px'}} onClick={e=>e.stopPropagation()}>
+                <div className="modal-header"><h3 className="font-bold">Procurement Order</h3></div>
+                <div className="modal-body">
+                  <p className="text-sm text-muted mb-4">Creating order for <strong>{procurementTarget.name}</strong>.</p>
+                  <button className="btn w-full justify-center" onClick={() => {alert('Order Request Sent to Supplier API'); setProcurementTarget(null)}}>Confirm Request</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
