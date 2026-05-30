@@ -1,0 +1,33 @@
+# CareSync AI — Backend Python Dependencies
+
+# Database
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0       # PostgreSQL adapter
+alembic>=1.13.0               # Schema migrations
+
+# Redis
+redis>=5.0.0
+
+# MongoDB
+pymongo>=4.6.0
+
+# Auth
+bcrypt>=4.1.0
+python-jose[cryptography]>=3.3.0   # JWT tokens
+
+# Config
+python-dotenv>=1.0.0
+
+# AI (for FastAPI endpoints)
+anthropic>=0.40.0
+
+# LangChain + LangGraph
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-anthropic>=0.3.0
+langgraph>=0.2.0
+
+# API (when building FastAPI server)
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.0.0

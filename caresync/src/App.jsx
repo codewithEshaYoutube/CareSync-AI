@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // --- 1. ENTERPRISE STYLES (CSS) ---
 // In a real project, move this to a separate CSS file or GlobalStyles component.
@@ -86,9 +86,17 @@ const styles = `
   .ai-fab:hover { transform: scale(1.1); }
   .ai-panel { position: fixed; bottom: 100px; right: 30px; width: 380px; height: 550px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; transform-origin: bottom right; transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 50; }
   .ai-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
-  .msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 0.9rem; animation: fadeIn 0.3s ease; }
+  .msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 0.9rem; animation: fadeIn 0.3s ease; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
   .msg.ai { background: var(--bg-panel-light); align-self: flex-start; border-bottom-left-radius: 2px; }
   .msg.user { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
+  .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 12px 14px; background: var(--bg-panel-light); border-radius: 12px; border-bottom-left-radius: 2px; align-self: flex-start; }
+  .typing-dot { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: typingBounce 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+  .chat-send-btn { background: var(--primary); border: none; color: white; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: var(--transition); }
+  .chat-send-btn:hover:not(:disabled) { background: #2563eb; }
+  .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   /* Landing */
   #landing-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.8s ease; }
@@ -109,12 +117,15 @@ const styles = `
   .font-bold { font-weight: 700; }
 `;
 
+const createInitialChartData = () => (
+  Array.from({ length: 20 }, () => Math.random() * 40 + 40)
+);
+
 // --- 2. SUB-COMPONENTS (Modularized for Enterprise Structure) ---
 
 // A. Canvas Radar Map Component
 const RadarMap = ({ nodes }) => {
   const canvasRef = useRef(null);
-  const [hoveredNode, setHoveredNode] = useState(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -268,44 +279,77 @@ const PredictiveChart = ({ data }) => {
 };
 
 // C. Chat Panel Component
-const ChatPanel = ({ isOpen, onClose, onSend }) => {
+const ChatPanel = ({ isOpen, onClose, onSend, messages, isLoading }) => {
   const [input, setInput] = useState('');
   const endRef = useRef(null);
 
+  // Scroll to bottom whenever messages change or loading state toggles
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [isOpen]); // Scroll when opened
+  }, [messages, isLoading]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if(!input.trim()) return;
+    if (!input.trim() || isLoading) return;
     onSend(input);
     setInput('');
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      handleSubmit(e);
+    }
   };
 
   return (
     <>
       <div className={`ai-panel ${isOpen ? 'open' : ''}`}>
-        <div className="chat-header" style={{padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between'}}>
-          <span className="font-bold flex items-center gap-2"><i className="fa-solid fa-sparkles" style={{color: 'var(--accent)'}}></i> AI Agent</span>
-          <button className="btn-ghost" onClick={onClose}><i className="fa-solid fa-xmark"></i></button>
+        <div className="chat-header" style={{padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          <span className="font-bold flex items-center gap-2">
+            <i className="fa-solid fa-sparkles" style={{color: 'var(--accent)'}}></i>
+            AI Procurement Agent
+          </span>
+          <button className="btn-ghost" onClick={onClose} style={{border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1rem'}}>
+            <i className="fa-solid fa-xmark"></i>
+          </button>
         </div>
-        <div className="chat-body" style={{flex:1, padding: '1rem', overflowY:'auto', display:'flex', flexDirection:'column', gap:'1rem'}}>
-          {/* Messages injected by parent or passed as props */}
-          <div className="msg ai">Hello. I'm monitoring supply chains. I see a potential deficit in Sector 4.</div>
+
+        <div className="chat-body" style={{flex: 1, padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
+          {messages.map((msg, i) => (
+            <div key={i} className={`msg ${msg.role === 'user' ? 'user' : 'ai'}`}>
+              {msg.content}
+            </div>
+          ))}
+          {isLoading && (
+            <div className="typing-indicator">
+              <span className="typing-dot"></span>
+              <span className="typing-dot"></span>
+              <span className="typing-dot"></span>
+            </div>
+          )}
+          <div ref={endRef} />
         </div>
-        <form className="chat-input-area" style={{padding:'1rem', borderTop:'1px solid var(--border)', display:'flex', gap:'10px'}} onSubmit={handleSubmit}>
-          <input 
-            className="chat-input" 
-            style={{flex:1, background:'rgba(0,0,0,0.2)', border:'1px solid var(--border)', color:'white', padding:'10px', borderRadius:'8px'}} 
-            placeholder="Type command..." 
+
+        <form
+          style={{padding: '1rem', borderTop: '1px solid var(--border)', display: 'flex', gap: '8px', alignItems: 'center'}}
+          onSubmit={handleSubmit}
+        >
+          <input
+            style={{flex: 1, background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'white', padding: '10px 12px', borderRadius: '8px', fontSize: '0.9rem', outline: 'none'}}
+            placeholder={isLoading ? 'Agent is thinking...' : 'Ask the procurement agent...'}
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={isLoading}
           />
-          <button type="submit" className="btn"><i className="fa-solid fa-paper-plane"></i></button>
+          <button type="submit" className="chat-send-btn" disabled={isLoading || !input.trim()}>
+            <i className="fa-solid fa-paper-plane"></i>
+          </button>
         </form>
       </div>
-      <div className="ai-fab" onClick={onClose}><i className="fa-solid fa-robot"></i></div>
+      <div className="ai-fab" onClick={() => onClose()}>
+        <i className="fa-solid fa-robot"></i>
+      </div>
     </>
   );
 };
@@ -317,11 +361,15 @@ export default function App() {
   const [view, setView] = useState('landing'); // 'landing' | 'dashboard'
   const [loading, setLoading] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  
+  const [chatLoading, setChatLoading] = useState(false);
+  const [messages, setMessages] = useState([
+    { role: 'assistant', content: "Hello Dr. Chen. I've analyzed the current inventory data. Oxygen levels in Delhi NCR are approaching critical thresholds. Shall I initiate automated procurement?" }
+  ]);
+
   // Data State
   const [metrics, setMetrics] = useState({ oxygen: 84.5, icu: 92.1, pharma: 78.2 });
   const [logs, setLogs] = useState([]);
-  const [chartData, setChartData] = useState(Array.from({length: 20}, () => Math.random() * 40 + 40));
+  const [chartData, setChartData] = useState(createInitialChartData);
   
   // Static Map Data
   const [mapNodes] = useState([
@@ -378,9 +426,34 @@ export default function App() {
     }, 1500);
   };
 
-  const handleChatSend = (text) => {
-    console.log("User sent:", text);
-    // Logic to add message to a chat state array would go here
+  const handleChatSend = async (text) => {
+    const userMsg = { role: 'user', content: text };
+    const updatedHistory = [...messages, userMsg];
+    setMessages(updatedHistory);
+    setChatLoading(true);
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history: messages,
+          hospital_id: 'b1000000-0000-0000-0000-000000000002', // AIIMS Delhi (seeded)
+        }),
+      });
+
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+    } catch {
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: 'I encountered a connection error. Please ensure the backend server is running.' },
+      ]);
+    } finally {
+      setChatLoading(false);
+    }
   };
 
   return (
@@ -423,7 +496,7 @@ export default function App() {
               <span>CareSync<span className="text-primary">AI</span></span>
             </div>
             <nav style={{flex: 1}}>
-              <div className="nav-item" style={{padding: '12px', borderRadius: '8px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)'}}>
+              <div className="nav-item" style={{padding: '12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)'}}>
                 <i className="fa-solid fa-grid-2"></i> Dashboard
               </div>
               <div className="nav-item" style={{padding: '12px', borderRadius: '8px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px'}}>
@@ -508,10 +581,12 @@ export default function App() {
             </div>
           </main>
 
-          <ChatPanel 
-            isOpen={chatOpen} 
-            onClose={() => setChatOpen(!chatOpen)} 
+          <ChatPanel
+            isOpen={chatOpen}
+            onClose={() => setChatOpen(!chatOpen)}
             onSend={handleChatSend}
+            messages={messages}
+            isLoading={chatLoading}
           />
         </div>
       )}
