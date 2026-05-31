@@ -1,9 +1,21 @@
 # 🏥 CareSync AI  
 ## Autonomous Healthcare Supply Chain Intelligence Platform
 
+
+![CareSync AI](careSync.PNG)
+
 > “Predicting and preventing healthcare resource crises using AI agents and live web intelligence.”
 
 ---
+
+# 🏥 Hospital Intelligence Dashboard
+
+![Hospital Analysis](hospital100%analysis.png)
+
+---
+
+
+![Landing Page](landing.png)
 
 
 ## 🎯 Tracks
@@ -60,6 +72,7 @@ CareSync   AI is an enterprise-grade autonomous healthcare intelligence platform
 to help hospitals predict and prevent critical healthcare resource crises before they happen.
 
 ---
+
 
 # 🧠 Core Innovation
 
