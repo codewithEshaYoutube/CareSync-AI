@@ -1,7 +1,6 @@
-
 import { useState, useEffect, useRef } from 'react';
 
-// --- 1. STYLES GENERATOR ---
+// --- 1. COMPLETE STYLES GENERATOR ---
 const createStyles = (isDarkMode) => {
   const darkVars = `
     --bg-dark: #0a0e27;
@@ -9,7 +8,6 @@ const createStyles = (isDarkMode) => {
     --bg-panel: rgba(20, 28, 50, 0.6);
     --bg-panel-solid: #1a2244;
     --bg-card: rgba(25, 35, 60, 0.5);
-    --bg-sidebar: rgba(26, 34, 68, 0.8);
     --primary: #00d4ff;
     --primary-dark: #0099cc;
     --primary-glow: rgba(0, 212, 255, 0.3);
@@ -34,7 +32,6 @@ const createStyles = (isDarkMode) => {
     --bg-panel: rgba(226, 232, 240, 0.6);
     --bg-panel-solid: #f1f5f9;
     --bg-card: rgba(241, 245, 249, 0.8);
-    --bg-sidebar: rgba(248, 250, 252, 0.95);
     --primary: #0084d9;
     --primary-dark: #0066a3;
     --primary-glow: rgba(0, 132, 217, 0.2);
@@ -62,8 +59,8 @@ const createStyles = (isDarkMode) => {
     : 'radial-gradient(circle at 30% 50%, rgba(0, 132, 217, 0.08) 0%, transparent 50%), linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)';
 
   const topbarBg = isDarkMode
-    ? 'linear-gradient(90deg, rgba(26, 34, 68, 0.4) 0%, rgba(20, 28, 50, 0.2) 100%)'
-    : 'linear-gradient(90deg, rgba(241, 245, 249, 0.5) 0%, rgba(226, 232, 240, 0.3) 100%)';
+    ? 'rgba(10, 14, 39, 0.85)'
+    : 'rgba(255, 255, 255, 0.85)';
 
   const mapBg = isDarkMode
     ? 'linear-gradient(135deg, rgba(15, 20, 40, 0.8) 0%, rgba(20, 28, 50, 0.6) 100%)'
@@ -86,105 +83,215 @@ const createStyles = (isDarkMode) => {
     --shadow-sm: ${shadowValues.sm};
     --shadow-md: ${shadowValues.md};
     --shadow-lg: ${shadowValues.lg};
+    --header-height: 80px;
   }
 
   * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; min-height: 100vh; background: var(--bg-dark); color: var(--text-main); font-family: var(--font-main); transition: background-color 0.3s, color 0.3s; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg-dark); color: var(--text-main); font-family: var(--font-main); transition: background-color 0.3s, color 0.3s; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
   body {
     background: ${bgStyle};
-    background-attachment: fixed;
+    background-attachment: absolute;
   }
 
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 700; letter-spacing: -0.5px; }
+  p { margin: 0; }
+  a { text-decoration: none; color: inherit; transition: color 0.2s; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 5px; opacity: 0.5; }
-  ::-webkit-scrollbar-thumb:hover { opacity: 1; }
+  ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; opacity: 0.6; }
+  ::-webkit-scrollbar-thumb:hover { opacity: 0.9; background: var(--accent); }
 
-  @keyframes glow { 0%, 100% { box-shadow: 0 0 20px var(--primary-glow); } 50% { box-shadow: 0 0 40px var(--primary-glow); } }
-  @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
-  @keyframes pulse-danger { 0% { box-shadow: 0 0 0 0 ${isDarkMode ? 'rgba(255, 56, 96, 0.8)' : 'rgba(220, 38, 38, 0.8)'}; } 70% { box-shadow: 0 0 0 12px ${isDarkMode ? 'rgba(255, 56, 96, 0)' : 'rgba(220, 38, 38, 0)'}; } 100% { box-shadow: 0 0 0 0 ${isDarkMode ? 'rgba(255, 56, 96, 0)' : 'rgba(220, 38, 38, 0)'}; } }
-  @keyframes slide-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
-  @keyframes spin { 100% { transform: rotate(360deg); } }
-
-  #app-root { display: flex; height: 100vh; width: 100vw; flex-direction: row; overflow: hidden; }
-  
-  .sidebar {
-    width: 280px;
-    background: var(--bg-sidebar);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 2rem 1.5rem;
-    z-index: 20;
-    backdrop-filter: blur(10px);
-    overflow-y: auto;
-    transition: all 0.3s;
+  @keyframes glow { 
+    0%, 100% { box-shadow: 0 0 20px var(--primary-glow); } 
+    50% { box-shadow: 0 0 40px var(--primary-glow); } 
+  }
+  @keyframes float { 
+    0%, 100% { transform: translateY(0px); } 
+    50% { transform: translateY(-8px); } 
+  }
+  @keyframes pulse-danger { 
+    0% { box-shadow: 0 0 0 0 ${isDarkMode ? 'rgba(255, 56, 96, 0.8)' : 'rgba(220, 38, 38, 0.8)'}; } 
+    70% { box-shadow: 0 0 0 12px ${isDarkMode ? 'rgba(255, 56, 96, 0)' : 'rgba(220, 38, 38, 0)'}; } 
+    100% { box-shadow: 0 0 0 0 ${isDarkMode ? 'rgba(255, 56, 96, 0)' : 'rgba(220, 38, 38, 0)'}; } 
+  }
+  @keyframes slide-in { 
+    from { opacity: 0; transform: translateY(20px); } 
+    to { opacity: 1; transform: translateY(0); } 
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes scan { 
+    0% { transform: translateY(-100%); } 
+    100% { transform: translateY(100vh); } 
+  }
+  @keyframes spin { 
+    100% { transform: rotate(360deg); } 
+  }
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
   }
 
-  .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  /* --- LAYOUT --- */
+  #app-root { 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+    width: 100%; 
+  }
+
+  .top-navbar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: var(--header-height);
+    background: ${topbarBg};
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .nav-left { display: flex; align-items: center; gap: 2rem; }
+  
+  .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
   .logo i { color: var(--primary); -webkit-text-fill-color: unset; }
 
-  .sidebar nav { display: flex; flex-direction: column; gap: 8px; }
-  .nav-item { padding: 12px 14px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.3s; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; }
-  .nav-item:hover { background: rgba(0, 132, 217, 0.1); color: var(--primary); transform: translateX(4px); }
-  .nav-item.active { background: rgba(0, 132, 217, 0.15); color: var(--primary); border-left: 3px solid var(--primary); padding-left: 11px; }
-
-  .theme-toggle { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(0, 132, 217, 0.05); cursor: pointer; font-size: 0.9rem; color: var(--text-muted); transition: all 0.3s; }
-  .theme-toggle:hover { background: rgba(0, 132, 217, 0.12); color: var(--primary); }
-
-  .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .nav-menu { display: flex; gap: 4px; }
   
-  .topbar { 
-    height: 70px; 
-    border-bottom: 1px solid var(--border); 
+  .nav-item { 
+    padding: 10px 16px; 
+    border-radius: 8px; 
+    cursor: pointer; 
     display: flex; 
     align-items: center; 
-    justify-content: space-between; 
-    padding: 0 2rem; 
-    background: ${topbarBg};
-    backdrop-filter: blur(12px);
-    flex-shrink: 0;
-    position: relative;
-    z-index: 10;
+    gap: 10px; 
+    transition: all 0.3s; 
+    color: var(--text-muted); 
+    font-weight: 500; 
+    font-size: 0.95rem;
+    border-bottom: 2px solid transparent;
+  }
+  .nav-item:hover { 
+    background: rgba(0, 132, 217, 0.08); 
+    color: var(--primary); 
+  }
+  .nav-item.active { 
+    background: rgba(0, 132, 217, 0.12); 
+    color: var(--primary); 
+    border-bottom: 2px solid var(--primary); 
+    font-weight: 600;
   }
 
-  .topbar h2 { margin: 0; font-size: 1.5rem; font-weight: 700; }
-
-  .status-bar { display: flex; align-items: center; gap: 20px; }
-  .status-indicator { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 0.85rem; color: var(--success-light); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  
+  .status-indicator { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 0.8rem; color: var(--success-light); }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: glow 2s infinite; }
 
-  .dashboard-grid {
+  .theme-toggle-nav { 
+    padding: 8px; 
+    border-radius: 8px; 
+    background: rgba(0, 132, 217, 0.05); 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    transition: all 0.2s;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .theme-toggle-nav:hover { background: rgba(0, 132, 217, 0.15); color: var(--primary); }
+  
+  .user-avatar { 
+    width: 40px; height: 40px; 
+    border-radius: 50%; 
+    background: linear-gradient(135deg, var(--primary), var(--accent)); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1rem; 
+    cursor: pointer;
+  }
+
+  .main-content { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    overflow-y: auto; 
+    overflow-x: hidden;
+    width: 100%;
+    background: transparent;
+  }
+
+  .content-wrapper {
+    width: 100%;
+    max-width: 1600px; /* Wide content area */
+    margin: 0 auto;
     padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     grid-auto-rows: auto;
     gap: 2rem;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    height: 100%;
     align-content: start;
   }
 
-  @media (max-width: 1024px) {
-    .dashboard-grid {
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      padding: 1.5rem;
-      gap: 1.5rem;
-    }
-    .sidebar { width: 250px; padding: 1.5rem 1rem; }
+  .page-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-auto-rows: auto;
+    gap: 2rem;
+    align-content: start;
   }
 
-  @media (max-width: 768px) {
-    #app-root { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; padding: 1rem; max-height: 30vh; overflow-y: auto; }
-    .main-content { flex: 1; }
-    .dashboard-grid { grid-template-columns: 1fr; padding: 1rem; gap: 1rem; }
-    .topbar { padding: 0 1rem; height: 60px; }
-    .topbar h2 { font-size: 1.2rem; }
+  .table-container {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: var(--bg-panel);
+  }
+
+  .table-container table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .table-container th {
+    background: linear-gradient(90deg, rgba(0, 132, 217, 0.12), rgba(99, 102, 241, 0.12));
+    padding: 1.2rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--primary);
+    border-bottom: 2px solid var(--border-light);
+    white-space: nowrap;
+  }
+
+  .table-container td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+
+  .table-container tr:hover {
+    background: rgba(0, 132, 217, 0.08);
   }
 
   .panel {
@@ -192,20 +299,18 @@ const createStyles = (isDarkMode) => {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
     backdrop-filter: blur(16px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     animation: slide-in 0.5s ease-out forwards;
   }
 
   .panel:hover {
     border-color: var(--border-light);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    transform: translateY(-4px);
   }
 
   .panel::before {
@@ -215,41 +320,92 @@ const createStyles = (isDarkMode) => {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0, 132, 217, 0.3), transparent);
+    background: linear-gradient(90deg, transparent, rgba(0, 132, 217, 0.4), transparent);
+    opacity: 0.8;
   }
   
   .map-card { grid-column: 1 / -1; min-height: 450px; max-height: 600px; }
   .analysis-card { grid-column: 1 / -1; }
   .stats-grid { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
 
-  .badge { padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; display: inline-flex; align-items: center; gap: 6px; width: fit-content; transition: all 0.2s; }
-  .badge.critical { background: rgba(255, 56, 96, 0.15); color: var(--danger-light); border: 1px solid rgba(255, 56, 96, 0.3); }
-  .badge.warning { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
-  .badge.stable { background: rgba(16, 185, 129, 0.15); color: var(--success-light); border: 1px solid rgba(16, 185, 129, 0.3); }
+  .badge { padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; display: inline-flex; align-items: center; gap: 6px; width: fit-content; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .badge.critical { 
+    background: rgba(255, 56, 96, 0.15); 
+    color: var(--danger-light); 
+    border: 1px solid rgba(255, 56, 96, 0.3); 
+    box-shadow: 0 0 12px rgba(255, 56, 96, 0.15);
+  }
+  .badge.warning { 
+    background: rgba(245, 158, 11, 0.15); 
+    color: #fcd34d; 
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+  }
+  .badge.stable { 
+    background: rgba(16, 185, 129, 0.15); 
+    color: var(--success-light); 
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+  }
   
-  .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .dot.critical { background: var(--danger); animation: pulse-danger 2s infinite; }
-  .dot.warning { background: var(--warning); }
-  .dot.stable { background: var(--success); animation: glow 2s infinite; }
+  .dot { 
+    width: 8px; 
+    height: 8px; 
+    border-radius: 50%; 
+    box-shadow: inset 0 -1px 3px rgba(0,0,0,0.2);
+  }
+  .dot.critical { 
+    background: var(--danger); 
+    animation: pulse-danger 2s infinite;
+    box-shadow: 0 0 8px rgba(255, 56, 96, 0.6), inset 0 -1px 3px rgba(0,0,0,0.2);
+  }
+  .dot.warning { 
+    background: var(--warning);
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.5), inset 0 -1px 3px rgba(0,0,0,0.2);
+  }
+  .dot.stable { 
+    background: var(--success); 
+    animation: glow 2s infinite;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4), inset 0 -1px 3px rgba(0,0,0,0.1);
+  }
 
   .resource-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 1rem; }
   .resource-item {
-    background: linear-gradient(135deg, rgba(0, 132, 217, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
-    padding: 14px;
+    background: linear-gradient(135deg, rgba(0, 132, 217, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%);
+    padding: 16px;
     border-radius: 12px;
     border: 1px solid var(--border-light);
     text-align: center;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
   }
+
+  .resource-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(0, 212, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+    pointer-events: none;
+  }
+
   .resource-item:hover {
-    background: linear-gradient(135deg, rgba(0, 132, 217, 0.12) 0%, rgba(124, 58, 237, 0.12) 100%);
+    background: linear-gradient(135deg, rgba(0, 132, 217, 0.16) 0%, rgba(124, 58, 237, 0.16) 100%);
     border-color: var(--primary);
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 132, 217, 0.2);
   }
-  .res-icon { font-size: 1.4rem; margin-bottom: 8px; color: var(--primary); }
-  .res-val { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; }
-  .res-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .resource-item:hover::before {
+    transform: translateX(100%);
+  }
+
+  .res-icon { font-size: 1.6rem; margin-bottom: 10px; color: var(--primary); display: inline-block; }
+  .res-val { font-weight: 700; font-size: 1.2rem; margin-bottom: 6px; }
+  .res-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
 
   .map-container {
     position: relative;
@@ -258,6 +414,7 @@ const createStyles = (isDarkMode) => {
     border-radius: 12px;
     overflow: hidden;
     background: ${mapBg};
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
   }
 
   .hospital-marker {
@@ -265,14 +422,16 @@ const createStyles = (isDarkMode) => {
     width: 40px;
     height: 40px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: flex;
     align-items: center;
     justify-content: center;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
   }
 
   .hospital-marker:hover {
-    transform: scale(1.2);
+    transform: scale(1.3);
+    filter: drop-shadow(0 4px 16px rgba(0, 132, 217, 0.4));
   }
 
   .marker-dot {
@@ -321,50 +480,205 @@ const createStyles = (isDarkMode) => {
     transform: translateX(-50%) translateY(-8px);
   }
 
-  .forecast-chart { height: 220px; width: 100%; position: relative; margin-top: 1rem; background: var(--bg-input); border-radius: 12px; border: 1px solid var(--border); }
+  .forecast-chart { 
+    height: 220px; 
+    width: 100%; 
+    position: relative; 
+    margin-top: 1rem; 
+    background: linear-gradient(135deg, rgba(0, 132, 217, 0.05), rgba(99, 102, 241, 0.05)); 
+    border-radius: 12px; 
+    border: 1px solid var(--border); 
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
 
   .stat-card {
-    background: linear-gradient(135deg, var(--bg-card) 0%, ${isDarkMode ? 'rgba(25, 35, 60, 0.3)' : 'rgba(226, 232, 240, 0.4)'} 100%);
+    background: linear-gradient(135deg, var(--bg-card) 0%, ${isDarkMode ? 'rgba(25, 35, 60, 0.2)' : 'rgba(226, 232, 240, 0.3)'} 100%);
     border: 1px solid var(--border-light);
     border-radius: 12px;
-    padding: 1.25rem;
-    transition: all 0.3s;
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
   }
 
   .stat-card:hover {
     border-color: var(--primary);
-    box-shadow: 0 0 20px rgba(0, 132, 217, 0.15);
-    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 132, 217, 0.2);
+    transform: translateY(-4px);
   }
 
-  .stat-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat-value { font-size: 1.8rem; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
-  .stat-change { font-size: 0.8rem; color: var(--success-light); display: flex; align-items: center; gap: 4px; }
+  .stat-card:hover::before {
+    opacity: 1;
+  }
+
+  .stat-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .stat-value { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+  .stat-change { font-size: 0.8rem; color: var(--success-light); display: flex; align-items: center; gap: 4px; font-weight: 500; }
   .stat-change.down { color: var(--danger-light); }
 
-  .modal-overlay { position: fixed; inset: 0; background: ${isDarkMode ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)'}; backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; padding: 20px; overflow-y: auto; }
+  .modal-overlay { position: fixed; inset: 0; background: ${isDarkMode ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.55)'}; backdrop-filter: blur(12px); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); padding: 20px; overflow-y: auto; }
   .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal { background: var(--bg-panel-solid); border: 1px solid var(--border-light); width: 100%; max-width: 900px; max-height: 90vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95); transition: 0.3s; box-shadow: var(--shadow-lg); }
-  .modal-overlay.open .modal { transform: scale(1); }
-  .modal-header { padding: 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: ${isDarkMode ? 'linear-gradient(90deg, rgba(0,0,0,0.2), transparent)' : 'linear-gradient(90deg, rgba(0,0,0,0.05), transparent)'}; }
+  .modal { background: var(--bg-panel-solid); border: 1px solid var(--border-light); width: 100%; max-width: 900px; max-height: 90vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95) translateY(20px); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); }
+  .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+  .modal-header { padding: 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: ${isDarkMode ? 'linear-gradient(90deg, rgba(0,132,217,0.08), transparent)' : 'linear-gradient(90deg, rgba(0,132,217,0.08), transparent)'}; }
   .modal-body { padding: 2rem; overflow-y: auto; flex: 1; max-height: calc(90vh - 200px); }
-  .modal-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: ${isDarkMode ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.02)'}; }
+  .modal-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: ${isDarkMode ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.05)'}; }
 
-  .ai-fab { position: fixed; bottom: 30px; right: 30px; width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; box-shadow: var(--shadow-lg); z-index: 50; cursor: pointer; transition: all 0.3s; border: 2px solid rgba(0, 132, 217, 0.3); }
-  .ai-fab:hover { transform: scale(1.1); box-shadow: 0 0 30px rgba(0, 132, 217, 0.4); }
-  .ai-panel { position: fixed; bottom: 100px; right: 30px; width: 420px; height: 620px; background: var(--bg-panel-solid); border: 1px solid var(--border-light); border-radius: 20px; display: flex; flex-direction: column; transform-origin: bottom right; transform: scale(0.9) translateY(20px); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 50; box-shadow: var(--shadow-lg); }
+  .ai-fab { 
+    position: fixed; 
+    bottom: 30px; 
+    right: 30px; 
+    width: 64px; 
+    height: 64px; 
+    background: linear-gradient(135deg, var(--primary), var(--accent)); 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: white; 
+    font-size: 1.5rem; 
+    box-shadow: 0 8px 24px rgba(0, 132, 217, 0.35); 
+    z-index: 150; 
+    cursor: pointer; 
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    border: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .ai-fab::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent);
+    pointer-events: none;
+  }
+  .ai-fab:hover { 
+    transform: scale(1.15);
+    box-shadow: 0 12px 36px rgba(0, 132, 217, 0.45);
+  }
+  .ai-panel { 
+    position: fixed; 
+    bottom: 100px; 
+    right: 30px; 
+    width: 420px; 
+    height: 620px; 
+    background: var(--bg-panel-solid); 
+    border: 1px solid var(--border-light); 
+    border-radius: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    transform-origin: bottom right; 
+    transform: scale(0.9) translateY(20px); 
+    opacity: 0; 
+    pointer-events: none; 
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    z-index: 150; 
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
   .ai-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
-  .msg { max-width: 85%; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; font-size: 0.9rem; white-space: pre-wrap; line-height: 1.4; }
-  .msg.ai { background: var(--bg-input); color: var(--text-main); align-self: flex-start; border: 1px solid var(--border-light); border-bottom-left-radius: 4px; }
-  .msg.user { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(0, 132, 217, 0.3); }
+  .msg { 
+    max-width: 85%; 
+    padding: 12px 16px; 
+    border-radius: 12px; 
+    margin-bottom: 12px; 
+    font-size: 0.9rem; 
+    white-space: pre-wrap; 
+    line-height: 1.4;
+    animation: scale-in 0.3s ease-out;
+  }
+  .msg.ai { 
+    background: var(--bg-input); 
+    color: var(--text-main); 
+    align-self: flex-start; 
+    border: 1px solid var(--border-light); 
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .msg.user { 
+    background: linear-gradient(135deg, var(--primary), var(--accent)); 
+    color: white; 
+    align-self: flex-end; 
+    border-bottom-right-radius: 4px; 
+    box-shadow: 0 6px 16px rgba(0, 132, 217, 0.3);
+    font-weight: 500;
+  }
 
-  #landing-page { position: absolute; inset: 0; background: ${landingBg}; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.8s; }
+  #landing-page { position: fixed; inset: 0; background: ${landingBg}; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 300; transition: opacity 0.8s; }
   .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--primary), transparent); box-shadow: 0 0 20px var(--primary); animation: scan 3s linear infinite; opacity: 0.5; }
   
-  .btn { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; font-size: 0.95rem; }
-  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 132, 217, 0.3); }
-  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
-  .btn-ghost:hover { background: rgba(0, 132, 217, 0.05); color: var(--primary); border-color: var(--primary); }
+  .btn { 
+    background: linear-gradient(135deg, var(--primary), var(--accent)); 
+    color: white; 
+    border: none; 
+    padding: 12px 24px; 
+    border-radius: 10px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    font-size: 0.95rem; 
+    box-shadow: 0 4px 16px rgba(0, 132, 217, 0.3); 
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0, 132, 217, 0.4);
+  }
+  .btn:hover::before {
+    left: 100%;
+  }
+  .btn:active { transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); box-shadow: none; padding: 10px 16px; border-radius: 8px; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer;}
+  .btn-ghost:hover { background: rgba(0, 132, 217, 0.12); color: var(--primary); border-color: var(--primary); box-shadow: 0 4px 12px rgba(0, 132, 217, 0.15); transform: translateY(-2px); }
+
+  input[type="text"], input[type="email"], input[type="password"], textarea, select {
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    color: var(--text-main);
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 100%;
+  }
+
+  input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus, select:focus {
+    border-color: var(--primary);
+    background: rgba(0, 132, 217, 0.12);
+    box-shadow: 0 0 16px rgba(0, 132, 217, 0.2), inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    outline: none;
+  }
+
+  input::placeholder {
+    color: var(--text-dim);
+    font-weight: 500;
+  }
 
   .flex { display: flex; }
   .flex-col { flex-direction: column; }
@@ -385,6 +699,83 @@ const createStyles = (isDarkMode) => {
   .text-primary { color: var(--primary); }
   .text-danger { color: var(--danger); }
   .bg-transparent { background: transparent; }
+  
+  /* --- FOOTER --- */
+  .site-footer {
+    background: var(--bg-panel-solid);
+    border-top: 1px solid var(--border);
+    padding: 4rem 2rem 2rem;
+    margin-top: auto;
+    width: 100%;
+  }
+
+  .footer-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  .footer-brand h3 { 
+    font-size: 1.5rem; 
+    background: linear-gradient(135deg, var(--primary), var(--accent)); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+  }
+  .footer-brand p { color: var(--text-muted); line-height: 1.6; max-width: 350px; }
+
+  .footer-col h4 { font-size: 1rem; margin-bottom: 1.2rem; color: var(--text-main); font-weight: 700; }
+  .footer-links { display: flex; flex-direction: column; gap: 0.8rem; }
+  .footer-links a { color: var(--text-muted); font-size: 0.9rem; transition: all 0.2s; }
+  .footer-links a:hover { color: var(--primary); padding-left: 5px; }
+
+  .social-links { display: flex; gap: 1rem; }
+  .social-icon { 
+    width: 40px; height: 40px; 
+    border-radius: 50%; 
+    background: var(--bg-input); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: var(--text-muted);
+    transition: all 0.3s;
+  }
+  .social-icon:hover { background: var(--primary); color: white; transform: translateY(-4px); }
+
+  .footer-bottom {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+  .footer-credits span { color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  @media (max-width: 1024px) {
+    .dashboard-grid, .page-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    .footer-content { grid-template-columns: 1fr 1fr; gap: 2rem; }
+  }
+
+  @media (max-width: 768px) {
+    #app-root { flex-direction: column; }
+    .nav-menu { display: none; } /* Simplified for demo, would use burger menu in production */
+    .main-content { flex: 1; }
+    .dashboard-grid, .page-grid { grid-template-columns: 1fr; padding: 0; gap: 1rem; }
+    .content-wrapper { padding: 1rem; }
+    .top-navbar { padding: 0 1rem; }
+    .footer-content { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+    #landing-page h1 { font-size: 2.5rem; }
+  }
 `;
 };
 
@@ -426,6 +817,24 @@ const DEMO_HOSPITALS = [
       nextMonthDemand: { 'ICU Beds': 80, 'Dialysis Machines': 10 },
       projectedDeficit: { 'ICU Beds': 75, 'Dialysis Machines': 8 },
       confidence: 98
+    }
+  },
+  {
+    id: 'ca-zsfg', name: 'Zuckerberg San Francisco General', region: 'San Francisco',
+    position: { x: 0.185, y: 0.405 }, status: 'warning',
+    occupancy: 88,
+    efficiency: 85,
+    lastUpdate: 'just now',
+    inventory: [
+      { id: 'r1', name: 'ICU Beds', current: 12, total: 40, unit: 'units', threshold: 8, type: 'bed', trend: 'down' },
+      { id: 'r2', name: 'Oxygen Cylinders', current: 50, total: 120, unit: 'tanks', threshold: 30, type: 'gas', trend: 'down' },
+      { id: 'r3', name: 'Ventilators', current: 6, total: 12, unit: 'machines', threshold: 3, type: 'machine', trend: 'stable' }
+    ],
+    forecast: {
+      trend: 'increasing',
+      nextMonthDemand: { 'ICU Beds': 30 },
+      projectedDeficit: { 'ICU Beds': 18 },
+      confidence: 92
     }
   },
   {
@@ -815,7 +1224,552 @@ const ChatPanel = ({ isOpen, onClose, onSend, messages, isLoading }) => {
   );
 };
 
-// --- 4. MAIN APP ---
+// --- FACILITIES PAGE COMPONENT ---
+const FacilitiesPage = ({ hospitals, stats }) => {
+  const [expandedId, setExpandedId] = useState(null);
+
+  return (
+    <div className="page-grid">
+      {/* Page Header */}
+      <div className="panel" style={{gridColumn: '1 / -1', background: `linear-gradient(135deg, rgba(0, 132, 217, 0.15), rgba(99, 102, 241, 0.1))`}}>
+        <h2 className="font-bold text-2xl mb-2">Facilities Management</h2>
+        <p className="text-muted">Monitor and manage all healthcare facilities across the network</p>
+        <div className="flex gap-4 mt-4">
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-primary">{stats.total}</div>
+            <div className="text-sm text-muted">Active Facilities</div>
+          </div>
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-success">{stats.stable}</div>
+            <div className="text-sm text-muted">Operational</div>
+          </div>
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-warning">{stats.warning}</div>
+            <div className="text-sm text-muted">Warnings</div>
+          </div>
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-danger">{stats.critical}</div>
+            <div className="text-sm text-muted">Critical</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Facilities List */}
+      <div className="panel" style={{gridColumn: '1 / -1'}}>
+        <h3 className="font-bold text-lg mb-4">All Facilities</h3>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Facility Name</th>
+                <th>Region</th>
+                <th>Occupancy</th>
+                <th>Efficiency</th>
+                <th>Status</th>
+                <th>Resources</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {hospitals.map((h) => (
+                <tr key={h.id}>
+                  <td><strong>{h.name}</strong></td>
+                  <td>{h.region}</td>
+                  <td><span className="font-medium">{h.occupancy}%</span></td>
+                  <td><span className="text-success font-medium">{h.efficiency}%</span></td>
+                  <td>
+                    <span className={`badge ${h.status}`}>
+                      <div className={`dot ${h.status}`}></div> {h.status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="text-sm">{h.inventory.filter(i => i.current >= i.threshold).length}/{h.inventory.length} normal</td>
+                  <td>
+                    <button 
+                      className="btn-ghost" 
+                      onClick={() => setExpandedId(expandedId === h.id ? null : h.id)}
+                      style={{padding: '6px 12px', fontSize: '0.85rem'}}
+                    >
+                      {expandedId === h.id ? 'Hide' : 'View'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Expanded Details */}
+        {expandedId && (
+          <div style={{marginTop: '2rem', padding: '1.5rem', background: 'rgba(0, 132, 217, 0.08)', borderRadius: '12px', border: '1px solid var(--border-light)'}}>
+            {hospitals.map(h => expandedId === h.id && (
+              <div key={h.id}>
+                <h4 className="font-bold mb-4">{h.name} - Detailed Overview</h4>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem'}}>
+                  <div className="stat-card">
+                    <div className="stat-label">Total Beds</div>
+                    <div className="stat-value" style={{fontSize: '2rem'}}>250</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-label">ICU Capacity</div>
+                    <div className="stat-value" style={{fontSize: '2rem'}}>85%</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-label">Staff Count</div>
+                    <div className="stat-value" style={{fontSize: '2rem'}}>450</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-label">Equipment</div>
+                    <div className="stat-value" style={{fontSize: '2rem'}}>{h.inventory.length}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Facility Performance Metrics */}
+      <div className="panel" style={{gridColumn: '1 / -1'}}>
+        <h3 className="font-bold text-lg mb-4">Performance Metrics</h3>
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem'}}>
+          {hospitals.map(h => (
+            <div key={h.id} style={{padding: '1.25rem', background: 'rgba(0, 132, 217, 0.08)', borderRadius: '12px', border: '1px solid var(--border-light)'}}>
+              <div className="font-bold mb-3">{h.name}</div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between mb-1 text-sm">
+                    <span>Occupancy</span>
+                    <span className="font-bold">{h.occupancy}%</span>
+                  </div>
+                  <div style={{width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden'}}>
+                    <div style={{height: '100%', width: `${h.occupancy}%`, background: h.occupancy > 85 ? 'var(--danger)' : h.occupancy > 70 ? 'var(--warning)' : 'var(--success)'}}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1 text-sm">
+                    <span>Efficiency</span>
+                    <span className="font-bold">{h.efficiency}%</span>
+                  </div>
+                  <div style={{width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden'}}>
+                    <div style={{height: '100%', width: `${h.efficiency}%`, background: 'var(--success)'}}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- INVENTORY PAGE COMPONENT ---
+const InventoryPage = ({ hospitals }) => {
+  const [selectedFacility, setSelectedFacility] = useState(hospitals[0]?.id);
+  const selected = hospitals.find(h => h.id === selectedFacility);
+
+  // Calculate inventory stats
+  const allItems = hospitals.flatMap(h => h.inventory);
+  const criticalItems = allItems.filter(i => i.current < i.threshold);
+  const lowItems = allItems.filter(i => i.current >= i.threshold && i.current < i.threshold * 1.5);
+
+  return (
+    <div className="page-grid">
+      {/* Inventory Summary */}
+      <div className="panel" style={{gridColumn: '1 / -1', background: `linear-gradient(135deg, rgba(0, 132, 217, 0.15), rgba(99, 102, 241, 0.1))`}}>
+        <h2 className="font-bold text-2xl mb-2">Inventory Management</h2>
+        <p className="text-muted mb-4">Track all medical supplies and equipment across facilities</p>
+        <div className="flex gap-4">
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-success">{allItems.length}</div>
+            <div className="text-sm text-muted">Total Items</div>
+          </div>
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-warning">{lowItems.length}</div>
+            <div className="text-sm text-muted">Low Stock</div>
+          </div>
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-danger">{criticalItems.length}</div>
+            <div className="text-sm text-muted">Critical</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Facility Selector */}
+      <div className="panel" style={{gridColumn: '1 / -1'}}>
+        <h3 className="font-bold mb-3">Select Facility</h3>
+        <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+          {hospitals.map(h => (
+            <button
+              key={h.id}
+              onClick={() => setSelectedFacility(h.id)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: selectedFacility === h.id ? '2px solid var(--primary)' : '1px solid var(--border)',
+                background: selectedFacility === h.id ? 'rgba(0, 132, 217, 0.15)' : 'var(--bg-input)',
+                color: selectedFacility === h.id ? 'var(--primary)' : 'var(--text-muted)',
+                cursor: 'pointer',
+                fontWeight: selectedFacility === h.id ? '600' : '500',
+                transition: 'all 0.3s'
+              }}
+            >
+              {h.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Selected Facility Inventory */}
+      {selected && (
+        <>
+          <div className="panel" style={{gridColumn: '1 / -1'}}>
+            <h3 className="font-bold text-lg mb-4">{selected.name} - Inventory Details</h3>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item Name</th>
+                    <th>Current</th>
+                    <th>Total</th>
+                    <th>Usage</th>
+                    <th>Threshold</th>
+                    <th>Status</th>
+                    <th>Trend</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selected.inventory.map((item) => {
+                    const isCritical = item.current < item.threshold;
+                    const usage = Math.round((item.current / item.total) * 100);
+                    return (
+                      <tr key={item.id}>
+                        <td><strong>{item.name}</strong></td>
+                        <td>{item.current}</td>
+                        <td>{item.total}</td>
+                        <td>
+                          <div style={{width: '100px', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden'}}>
+                            <div style={{height: '100%', width: `${usage}%`, background: isCritical ? 'var(--danger)' : usage < 50 ? 'var(--warning)' : 'var(--success)'}}></div>
+                          </div>
+                        </td>
+                        <td>{item.threshold}</td>
+                        <td>
+                          <span className={`badge ${isCritical ? 'critical' : usage < 60 ? 'warning' : 'stable'}`}>
+                            {isCritical ? 'CRITICAL' : usage < 60 ? 'LOW' : 'OK'}
+                          </span>
+                        </td>
+                        <td>
+                          <i className={`fa-solid fa-arrow-trend-${item.trend === 'up' ? 'up text-warning' : item.trend === 'down' ? 'down text-danger' : 'right text-success'}`}></i>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Inventory by Category */}
+          <div className="panel" style={{gridColumn: '1 / -1'}}>
+            <h3 className="font-bold text-lg mb-4">Categorized Inventory</h3>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem'}}>
+              {Array.from(new Set(selected.inventory.map(i => i.type))).map(type => (
+                <div key={type} style={{padding: '1.25rem', background: 'rgba(0, 132, 217, 0.08)', borderRadius: '12px', border: '1px solid var(--border-light)'}}>
+                  <div className="font-bold mb-3 capitalize">{type} Supplies</div>
+                  <div className="space-y-2">
+                    {selected.inventory.filter(i => i.type === type).map(item => (
+                      <div key={item.id} className="flex justify-between items-center text-sm">
+                        <span>{item.name}</span>
+                        <span className={item.current < item.threshold ? 'text-danger font-bold' : 'text-success'}>{item.current}/{item.total}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Critical Items Alert */}
+      {criticalItems.length > 0 && (
+        <div className="panel" style={{gridColumn: '1 / -1', background: 'rgba(255, 56, 96, 0.1)', borderColor: 'rgba(255, 56, 96, 0.3)'}}>
+          <h3 className="font-bold text-lg mb-3 text-danger flex items-center gap-2">
+            <i className="fa-solid fa-triangle-exclamation"></i>
+            Critical Items Requiring Attention
+          </h3>
+          <div className="space-y-2">
+            {criticalItems.map((item, idx) => {
+              const hospital = hospitals.find(h => h.inventory.includes(item));
+              return (
+                <div key={idx} className="flex justify-between items-center p-2 bg-red-500/10 rounded border border-red-500/20">
+                  <div>
+                    <strong className="text-sm">{item.name}</strong>
+                    <div className="text-xs text-muted">{hospital?.name}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-danger font-bold">{item.current}/{item.total}</div>
+                    <div className="text-xs text-danger">Below threshold: {item.threshold}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- ALERTS PAGE COMPONENT ---
+const AlertsPage = ({ hospitals, stats }) => {
+  const [filterLevel, setFilterLevel] = useState('all');
+
+  // Generate mock alerts
+  const generateAlerts = () => {
+    const alerts = [];
+    hospitals.forEach(h => {
+      // Critical resource alerts
+      h.inventory.forEach(item => {
+        if (item.current < item.threshold) {
+          alerts.push({
+            id: `${h.id}-${item.id}`,
+            level: 'critical',
+            type: 'Resource Critical',
+            hospital: h.name,
+            message: `${item.name} critically low: ${item.current}/${item.total} units`,
+            time: '2 mins ago'
+          });
+        } else if (item.current < item.threshold * 1.5) {
+          alerts.push({
+            id: `${h.id}-${item.id}-low`,
+            level: 'warning',
+            type: 'Resource Low',
+            hospital: h.name,
+            message: `${item.name} running low: ${item.current}/${item.total} units`,
+            time: '5 mins ago'
+          });
+        }
+      });
+
+      // Occupancy alerts
+      if (h.occupancy > 90) {
+        alerts.push({
+          id: `${h.id}-occupancy`,
+          level: 'critical',
+          type: 'Capacity Alert',
+          hospital: h.name,
+          message: `Occupancy critical at ${h.occupancy}%`,
+          time: '1 min ago'
+        });
+      } else if (h.occupancy > 80) {
+        alerts.push({
+          id: `${h.id}-occupancy-warn`,
+          level: 'warning',
+          type: 'Capacity Warning',
+          hospital: h.name,
+          message: `High occupancy at ${h.occupancy}%`,
+          time: '3 mins ago'
+        });
+      }
+    });
+
+    // System alerts
+    alerts.push({
+      id: 'sys-1',
+      level: 'info',
+      type: 'System',
+      hospital: 'Network',
+      message: 'Backup sync completed successfully',
+      time: '10 mins ago'
+    });
+
+    return alerts.sort((a, b) => {
+      const levelPriority = { critical: 0, warning: 1, info: 2 };
+      return levelPriority[a.level] - levelPriority[b.level];
+    });
+  };
+
+  const allAlerts = generateAlerts();
+  const filteredAlerts = filterLevel === 'all' ? allAlerts : allAlerts.filter(a => a.level === filterLevel);
+
+  const alertCounts = {
+    critical: allAlerts.filter(a => a.level === 'critical').length,
+    warning: allAlerts.filter(a => a.level === 'warning').length,
+    info: allAlerts.filter(a => a.level === 'info').length
+  };
+
+  return (
+    <div className="page-grid">
+      {/* Alerts Header */}
+      <div className="panel" style={{gridColumn: '1 / -1', background: `linear-gradient(135deg, rgba(0, 132, 217, 0.15), rgba(99, 102, 241, 0.1))`}}>
+        <h2 className="font-bold text-2xl mb-2">System Alerts</h2>
+        <p className="text-muted mb-4">Real-time monitoring of critical incidents and warnings</p>
+        <div className="flex gap-4">
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-danger">{alertCounts.critical}</div>
+            <div className="text-sm text-muted">Critical</div>
+          </div>
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-warning">{alertCounts.warning}</div>
+            <div className="text-sm text-muted">Warnings</div>
+          </div>
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold text-success">{alertCounts.info}</div>
+            <div className="text-sm text-muted">Notices</div>
+          </div>
+          <div style={{flex: 1}}>
+            <div className="text-3xl font-bold">{allAlerts.length}</div>
+            <div className="text-sm text-muted">Total Alerts</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Buttons */}
+      <div className="panel" style={{gridColumn: '1 / -1'}}>
+        <h3 className="font-bold mb-3">Filter by Level</h3>
+        <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap'}}>
+          {['all', 'critical', 'warning', 'info'].map(level => (
+            <button
+              key={level}
+              onClick={() => setFilterLevel(level)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: filterLevel === level ? '2px solid var(--primary)' : '1px solid var(--border)',
+                background: filterLevel === level ? 'rgba(0, 132, 217, 0.15)' : 'var(--bg-input)',
+                color: filterLevel === level ? 'var(--primary)' : 'var(--text-muted)',
+                cursor: 'pointer',
+                fontWeight: filterLevel === level ? '600' : '500',
+                textTransform: 'capitalize',
+                transition: 'all 0.3s'
+              }}
+            >
+              {level === 'all' ? 'All Alerts' : `${level.charAt(0).toUpperCase()}${level.slice(1)}`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Alerts List */}
+      <div className="panel" style={{gridColumn: '1 / -1'}}>
+        <h3 className="font-bold text-lg mb-4">Active Alerts ({filteredAlerts.length})</h3>
+        <div className="space-y-3">
+          {filteredAlerts.length > 0 ? (
+            filteredAlerts.map((alert) => {
+              const levelColor = alert.level === 'critical' ? '#ff3860' : alert.level === 'warning' ? '#f59e0b' : '#10b981';
+              const levelBg = alert.level === 'critical' ? 'rgba(255, 56, 96, 0.1)' : alert.level === 'warning' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+              return (
+                <div
+                  key={alert.id}
+                  style={{
+                    padding: '1rem',
+                    background: levelBg,
+                    border: `1px solid ${levelColor}33`,
+                    borderRadius: '10px',
+                    borderLeft: `4px solid ${levelColor}`
+                  }}
+                >
+                  <div className="flex justify-between items-start">
+                    <div style={{flex: 1}}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <i className={`fa-solid fa-${alert.level === 'critical' ? 'circle-exclamation' : alert.level === 'warning' ? 'triangle-exclamation' : 'circle-info'}`} style={{color: levelColor}}></i>
+                        <strong style={{color: levelColor}}>{alert.type}</strong>
+                        <span className="text-xs text-muted" style={{marginLeft: 'auto'}}>{alert.time}</span>
+                      </div>
+                      <div className="text-sm text-muted mb-1">
+                        <strong>Facility:</strong> {alert.hospital}
+                      </div>
+                      <div className="text-sm">{alert.message}</div>
+                    </div>
+                    <button className="btn-ghost" style={{padding: '6px 12px', fontSize: '0.85rem', marginLeft: '1rem'}}>
+                      Resolve
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div style={{padding: '2rem', textAlign: 'center', color: 'var(--text-muted)'}}>
+              <i className="fa-solid fa-check-circle" style={{fontSize: '2rem', marginBottom: '0.5rem', display: 'block', color: 'var(--success)'}}></i>
+              <p>No {filterLevel !== 'all' ? filterLevel : ''} alerts at this time</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Alert Statistics */}
+      <div className="panel" style={{gridColumn: '1 / -1'}}>
+        <h3 className="font-bold text-lg mb-4">Alert Statistics</h3>
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem'}}>
+          <div style={{padding: '1.25rem', background: 'rgba(255, 56, 96, 0.1)', borderRadius: '12px', border: '1px solid rgba(255, 56, 96, 0.3)'}}>
+            <div className="font-bold mb-3 text-danger">Critical Alerts</div>
+            <div className="text-3xl font-bold text-danger mb-2">{alertCounts.critical}</div>
+            <div className="text-sm text-muted">Require immediate action</div>
+          </div>
+          <div style={{padding: '1.25rem', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.3)'}}>
+            <div className="font-bold mb-3 text-warning">Warning Alerts</div>
+            <div className="text-3xl font-bold text-warning mb-2">{alertCounts.warning}</div>
+            <div className="text-sm text-muted">Monitor closely</div>
+          </div>
+          <div style={{padding: '1.25rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)'}}>
+            <div className="font-bold mb-3 text-success">Informational</div>
+            <div className="text-3xl font-bold text-success mb-2">{alertCounts.info}</div>
+            <div className="text-sm text-muted">System notices</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- 4. FOOTER COMPONENT ---
+const Footer = () => (
+  <footer className="site-footer">
+    <div className="footer-content">
+      <div className="footer-brand">
+        <h3>CareSync AI</h3>
+        <p>Automate what slows you down. Hospital operations enterprise automation. Streamline your facility management with predictive AI.</p>
+      </div>
+      
+      <div className="footer-col">
+        <h4>Company</h4>
+        <div className="footer-links">
+          <a href="#">About Us</a>
+          <a href="#">Careers</a>
+          <a href="#">Partners</a>
+          <a href="#">Press</a>
+        </div>
+      </div>
+
+      <div className="footer-col">
+        <h4>Connect</h4>
+        <div className="footer-links">
+          <a href="#">Contact</a>
+          <a href="mailto:hello@caresync.com">hello@caresync.com</a>
+          <a href="#" className="text-primary font-bold">Book Free Audit</a>
+        </div>
+      </div>
+
+      <div className="footer-col">
+        <h4>Social</h4>
+        <div className="social-links">
+          <a href="#" className="social-icon" aria-label="LinkedIn"><i className="fa-brands fa-linkedin-in"></i></a>
+          <a href="#" className="social-icon" aria-label="GitHub"><i className="fa-brands fa-github"></i></a>
+          <a href="#" className="social-icon" aria-label="Twitter"><i className="fa-brands fa-twitter"></i></a>
+          <a href="#" className="social-icon" aria-label="Instagram"><i className="fa-brands fa-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <div className="footer-bottom">
+      <div>© 2026 CareSync. All rights reserved.</div>
+      <div className="footer-credits">Built by <span>eeshatariq</span> and <span>aliza arshad</span></div>
+    </div>
+  </footer>
+);
+
+// --- 5. MAIN APP ---
 export default function App() {
   const [view, setView] = useState('landing');
   const [loading, setLoading] = useState(false);
@@ -914,7 +1868,7 @@ export default function App() {
   return (
     <>
       {loading && (
-        <div style={{position:'fixed', inset:0, background:'var(--bg-dark)', zIndex:200, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
+        <div style={{position:'fixed', inset:0, background:'var(--bg-dark)', zIndex:400, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
           <div style={{width:'60px', height:'60px', border:'3px solid rgba(0, 132, 217, 0.2)', borderTopColor:'var(--primary)', borderRadius:'50%', animation:'spin 1s linear infinite'}}></div>
           <h3 className="mt-6 font-bold text-primary">Initializing CareSync Network...</h3>
           <p className="text-muted text-sm mt-2">Connecting to 4 facilities</p>
@@ -952,176 +1906,175 @@ export default function App() {
 
       {view === 'dashboard' && (
         <div id="app-root">
-          <aside className="sidebar">
-            <div className="logo">
-              <i className="fa-solid fa-heart-pulse fa-lg"></i>
-              <span>CareSync</span>
+          {/* TOP NAVIGATION BAR */}
+          <nav className="top-navbar">
+            <div className="nav-left">
+              <div className="logo">
+                <i className="fa-solid fa-heart-pulse fa-lg"></i>
+                <span>CareSync</span>
+              </div>
+              <div className="nav-menu">
+                {[
+                  { id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
+                  { id: 'facilities', label: 'Facilities', icon: 'fa-hospital' },
+                  { id: 'inventory', label: 'Inventory', icon: 'fa-boxes-stacked' },
+                  { id: 'alerts', label: 'Alerts', icon: 'fa-bell' }
+                ].map(item => (
+                  <div
+                    key={item.id}
+                    className={`nav-item ${activeNav === item.id ? 'active' : ''}`}
+                    onClick={() => setActiveNav(item.id)}
+                  >
+                    <i className={`fa-solid ${item.icon}`}></i>
+                    {item.label}
+                  </div>
+                ))}
+              </div>
             </div>
-            <nav className="flex flex-col gap-1">
-              {[
-                { id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
-                { id: 'facilities', label: 'Facilities', icon: 'fa-hospital' },
-                { id: 'inventory', label: 'Inventory', icon: 'fa-boxes-stacked' },
-                { id: 'alerts', label: 'Alerts', icon: 'fa-bell' }
-              ].map(item => (
-                <div
-                  key={item.id}
-                  className={`nav-item ${activeNav === item.id ? 'active' : ''}`}
-                  onClick={() => setActiveNav(item.id)}
-                >
-                  <i className={`fa-solid ${item.icon}`}></i>
-                  {item.label}
-                </div>
-              ))}
-            </nav>
             
-            <div style={{marginTop:'auto', paddingTop:'1.5rem', borderTop:'1px solid var(--border)'}}>
-              <p className="text-xs text-muted font-bold mb-3">NETWORK STATUS</p>
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted">Facilities</span>
-                  <span className="font-bold">{stats.total}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div> Stable</span>
-                  <span className="font-bold text-green-400">{stats.stable}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-500"></div> Warning</span>
-                  <span className="font-bold text-yellow-400">{stats.warning}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Critical</span>
-                  <span className="font-bold text-red-400">{stats.critical}</span>
-                </div>
+            <div className="nav-right">
+              <div className="status-indicator">
+                <div className="status-dot"></div>
+                LIVE NETWORK
               </div>
-
-              <div className="theme-toggle" onClick={() => setIsDarkMode(!isDarkMode)}>
+              <div className="theme-toggle-nav" onClick={() => setIsDarkMode(!isDarkMode)}>
                 <i className={`fa-solid ${isDarkMode ? 'fa-sun' : 'fa-moon'}`}></i>
-                <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+              </div>
+              <div style={{width:'40px', height:'40px', borderRadius:'50%', background:'linear-gradient(135deg, var(--primary), var(--accent))', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', cursor:'pointer'}}>
+                <i className="fa-solid fa-user"></i>
               </div>
             </div>
-          </aside>
+          </nav>
 
+          {/* SCROLLABLE MAIN CONTENT */}
           <main className="main-content">
-            <header className="topbar">
-              <h2 className="font-bold">California Operations Center</h2>
-              <div className="status-bar">
-                <div className="status-indicator">
-                  <div className="status-dot"></div>
-                  LIVE NETWORK
-                </div>
-                <div style={{width:'40px', height:'40px', borderRadius:'50%', background:'linear-gradient(135deg, var(--primary), var(--accent))', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.2rem', cursor:'pointer'}}>
-                  <i className="fa-solid fa-user"></i>
-                </div>
-              </div>
-            </header>
-
-            <div className="dashboard-grid">
-              {/* Map Card */}
-              <div className="panel map-card">
-                <div style={{marginBottom:'1rem'}}>
-                  <h3 className="font-bold text-lg mb-1">California Hospital Network</h3>
-                  <p className="text-sm text-muted">Real-time facility monitoring and status</p>
-                </div>
-                <CaliforniaMap hospitals={hospitals} selectedHospital={selectedHospital} onHospitalSelect={setSelectedHospital} />
-              </div>
-
-              {/* Stats Cards */}
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-label"><i className="fa-solid fa-hospital mr-2"></i>Total Facilities</div>
-                  <div className="stat-value">{stats.total}</div>
-                  <div className="stat-change"><i className="fa-solid fa-check-circle"></i> All operational</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-label"><i className="fa-solid fa-percentage mr-2"></i>Avg Occupancy</div>
-                  <div className="stat-value">{stats.avgOccupancy}%</div>
-                  <div className={stats.avgOccupancy > 80 ? "stat-change down" : "stat-change"}><i className={`fa-solid fa-arrow-trend-${stats.avgOccupancy > 80 ? 'up' : 'down'}`}></i> {stats.avgOccupancy > 80 ? 'High demand' : 'Optimal'}</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-label"><i className="fa-solid fa-triangle-exclamation mr-2"></i>Critical Items</div>
-                  <div className="stat-value" style={{color: stats.critical > 0 ? 'var(--danger)' : 'var(--success)'}}>{hospitals.reduce((count, h) => count + h.inventory.filter(i => i.current < i.threshold).length, 0)}</div>
-                  <div className={stats.critical > 0 ? "stat-change down" : "stat-change"}><i className={`fa-solid fa-${stats.critical > 0 ? 'exclamation' : 'check'}-circle`}></i> {stats.critical > 0 ? 'Immediate action' : 'No issues'}</div>
-                </div>
-              </div>
-
-              {/* Hospital Cards */}
-              <div style={{gridColumn:'1 / -1'}}>
-                <h3 className="font-bold text-lg mb-4" style={{paddingLeft:'0.5rem'}}>Facility Overview</h3>
-                <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:'1.5rem'}}>
-                  {hospitals.map(h => (
-                    <div 
-                      key={h.id} 
-                      className="panel" 
-                      onClick={() => setSelectedHospital(h)} 
-                      style={{cursor:'pointer', position:'relative'}}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="font-bold">{h.name}</h4>
-                          <p className="text-xs text-muted">{h.region}</p>
-                        </div>
-                        <span className={`badge ${h.status}`}>
-                          <div className={`dot ${h.status}`}></div>
-                        </span>
-                      </div>
-                      
-                      <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem', marginBottom:'1rem', paddingBottom:'1rem', borderBottom:'1px solid var(--border)'}}>
-                        <div>
-                          <p className="text-xs text-muted mb-1">Occupancy</p>
-                          <p className="text-lg font-bold text-primary">{h.occupancy}%</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted mb-1">Efficiency</p>
-                          <p className="text-lg font-bold text-success">{h.efficiency}%</p>
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-dim">
-                        <i className="fa-solid fa-circle-check text-primary mr-1"></i>
-                        {h.inventory.filter(i => i.current >= i.threshold).length}/{h.inventory.length} resources normal
-                      </p>
-                      <div className="text-xs text-primary font-mono mt-3">View Details →</div>
+            <div className="content-wrapper">
+              
+              {/* DASHBOARD VIEW */}
+              {activeNav === 'dashboard' && (
+                <div className="dashboard-grid">
+                  {/* Map Card */}
+                  <div className="panel map-card">
+                    <div style={{marginBottom:'1rem'}}>
+                      <h3 className="font-bold text-lg mb-1">California Hospital Network</h3>
+                      <p className="text-sm text-muted">Real-time facility monitoring and status</p>
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <CaliforniaMap hospitals={hospitals} selectedHospital={selectedHospital} onHospitalSelect={setSelectedHospital} />
+                  </div>
+                  <br />
+                  <br />
+                  <br />
+                  <br />
 
-              {/* Advanced Analytics */}
-              <div className="panel analysis-card">
-                <h3 className="font-bold text-lg mb-4 border-b border-white/10 pb-3">
-                  <i className="fa-solid fa-brain mr-2 text-primary"></i>
-                  AI Predictive Analytics (Next 30 Days)
-                </h3>
-                <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:'1.5rem'}}>
-                  {hospitals.map(h => (
-                    <div key={h.id} className="bg-white/5 p-4 rounded-lg border border-white/5 hover:border-primary/30 transition-all">
-                      <div className="flex justify-between mb-3">
-                        <span className="font-bold text-sm">{h.name}</span>
-                        <i className={`fa-solid fa-arrow-trend-${h.forecast.trend === 'increasing' ? 'up text-warning' : (h.forecast.trend === 'surge' ? 'up text-danger' : 'right text-success')}`}></i>
-                      </div>
-                      <div className="text-xs mb-3 p-2 bg-white/5 rounded border border-white/10">
-                        <span className="text-muted">Confidence: </span>
-                        <span className="font-bold text-primary">{h.forecast.confidence}%</span>
-                      </div>
-                      {Object.keys(h.forecast.projectedDeficit).length > 0 ? (
-                        <div className="space-y-1">
-                          {Object.entries(h.forecast.projectedDeficit).map(([k,v]) => (
-                            <div key={k} className="text-xs flex justify-between items-center">
-                              <span className="text-muted">{k}:</span>
-                              <span className="text-danger font-bold">-{v} units</span>
+
+                  {/* Stats Cards */}
+                  <div className="stats-grid">
+                    <div className="stat-card">
+                      <div className="stat-label"><i className="fa-solid fa-hospital mr-2"></i>Total Facilities</div>
+                      <div className="stat-value">{stats.total}</div>
+                      <div className="stat-change"><i className="fa-solid fa-check-circle"></i> All operational</div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-label"><i className="fa-solid fa-percentage mr-2"></i>Avg Occupancy</div>
+                      <div className="stat-value">{stats.avgOccupancy}%</div>
+                      <div className={stats.avgOccupancy > 80 ? "stat-change down" : "stat-change"}><i className={`fa-solid fa-arrow-trend-${stats.avgOccupancy > 80 ? 'up' : 'down'}`}></i> {stats.avgOccupancy > 80 ? 'High demand' : 'Optimal'}</div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="stat-label"><i className="fa-solid fa-triangle-exclamation mr-2"></i>Critical Items</div>
+                      <div className="stat-value" style={{color: stats.critical > 0 ? 'var(--danger)' : 'var(--success)'}}>{hospitals.reduce((count, h) => count + h.inventory.filter(i => i.current < i.threshold).length, 0)}</div>
+                      <div className={stats.critical > 0 ? "stat-change down" : "stat-change"}><i className={`fa-solid fa-${stats.critical > 0 ? 'exclamation' : 'check'}-circle`}></i> {stats.critical > 0 ? 'Immediate action' : 'No issues'}</div>
+                    </div>
+                  </div>
+
+                  {/* Hospital Cards */}
+                  <div style={{gridColumn:'1 / -1'}}>
+                    <h3 className="font-bold text-lg mb-4" style={{paddingLeft:'0.5rem'}}>Facility Overview</h3>
+                    <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:'1.5rem'}}>
+                      {hospitals.map(h => (
+                        <div 
+                          key={h.id} 
+                          className="panel" 
+                          onClick={() => setSelectedHospital(h)} 
+                          style={{cursor:'pointer', position:'relative'}}
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-bold">{h.name}</h4>
+                              <p className="text-xs text-muted">{h.region}</p>
                             </div>
-                          ))}
+                            <span className={`badge ${h.status}`}>
+                              <div className={`dot ${h.status}`}></div>
+                            </span>
+                          </div>
+                          
+                          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem', marginBottom:'1rem', paddingBottom:'1rem', borderBottom:'1px solid var(--border)'}}>
+                            <div>
+                              <p className="text-xs text-muted mb-1">Occupancy</p>
+                              <p className="text-lg font-bold text-primary">{h.occupancy}%</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted mb-1">Efficiency</p>
+                              <p className="text-lg font-bold text-success">{h.efficiency}%</p>
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-dim">
+                            <i className="fa-solid fa-circle-check text-primary mr-1"></i>
+                            {h.inventory.filter(i => i.current >= i.threshold).length}/{h.inventory.length} resources normal
+                          </p>
+                          <div className="text-xs text-primary font-mono mt-3">View Details →</div>
                         </div>
-                      ) : (
-                        <div className="text-xs text-success"><i className="fa-solid fa-check mr-1"></i> Stable forecast</div>
-                      )}
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Advanced Analytics */}
+                  <div className="panel analysis-card">
+                    <h3 className="font-bold text-lg mb-4 border-b border-white/10 pb-3">
+                      <i className="fa-solid fa-brain mr-2 text-primary"></i>
+                      AI Predictive Analytics (Next 30 Days)
+                    </h3>
+                    <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:'1.5rem'}}>
+                      {hospitals.map(h => (
+                        <div key={h.id} className="bg-white/5 p-4 rounded-lg border border-white/5 hover:border-primary/30 transition-all">
+                          <div className="flex justify-between mb-3">
+                            <span className="font-bold text-sm">{h.name}</span>
+                            <i className={`fa-solid fa-arrow-trend-${h.forecast.trend === 'increasing' ? 'up text-warning' : (h.forecast.trend === 'surge' ? 'up text-danger' : 'right text-success')}`}></i>
+                          </div>
+                          <div className="text-xs mb-3 p-2 bg-white/5 rounded border border-white/10">
+                            <span className="text-muted">Confidence: </span>
+                            <span className="font-bold text-primary">{h.forecast.confidence}%</span>
+                          </div>
+                          {Object.keys(h.forecast.projectedDeficit).length > 0 ? (
+                            <div className="space-y-1">
+                              {Object.entries(h.forecast.projectedDeficit).map(([k,v]) => (
+                                <div key={k} className="text-xs flex justify-between items-center">
+                                  <span className="text-muted">{k}:</span>
+                                  <span className="text-danger font-bold">-{v} units</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-xs text-success"><i className="fa-solid fa-check mr-1"></i> Stable forecast</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* FACILITIES PAGE */}
+              {activeNav === 'facilities' && <FacilitiesPage hospitals={hospitals} stats={stats} />}
+
+              {/* INVENTORY PAGE */}
+              {activeNav === 'inventory' && <InventoryPage hospitals={hospitals} />}
+
+              {/* ALERTS PAGE */}
+              {activeNav === 'alerts' && <AlertsPage hospitals={hospitals} stats={stats} />}
             </div>
+            
+            <Footer />
           </main>
 
           <ChatPanel isOpen={chatOpen} onClose={() => setChatOpen(!chatOpen)} onSend={handleChat} messages={messages} isLoading={chatLoading} />
