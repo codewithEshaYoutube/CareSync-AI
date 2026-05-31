@@ -2,7 +2,7 @@
 ## Autonomous Healthcare Supply Chain Intelligence Platform
 
 
-![CareSync AI](careSync.PNG)
+![CareSync AI](caresync.png)
 
 > “Predicting and preventing healthcare resource crises using AI agents and live web intelligence.”
 
@@ -10,7 +10,7 @@
 
 # 🏥 Hospital Intelligence Dashboard
 
-![Hospital Analysis](hospital100%analysis.png)
+![Hospital Analysis](hospital-analysis.png)
 
 ---
 
