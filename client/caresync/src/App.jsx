@@ -160,19 +160,23 @@ const createStyles = (isDarkMode) => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 2rem;
+    padding: 0 1.5rem;
     box-shadow: var(--shadow-sm);
+    gap: 12px;
+    position: relative;
   }
 
-  .nav-left { display: flex; align-items: center; gap: 2rem; }
-  
-  .logo { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
-  .logo i { color: var(--primary); -webkit-text-fill-color: unset; }
+  .nav-left { display: flex; align-items: center; gap: 1rem; z-index: 20; flex: 0 0 auto; }
 
-  .nav-menu { display: flex; gap: 4px; }
+  .nav-center { display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; z-index: 10; }
+  
+  .logo { font-size: 1.35rem; font-weight: 700; display: flex; align-items: center; gap: 10px; margin: 0; padding: 6px 10px; border-radius: 10px; background: var(--bg-panel-solid); color: var(--primary); letter-spacing: -0.5px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); white-space: nowrap; }
+  .logo i { color: var(--primary); margin-right: 6px; }
+
+  .nav-menu { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; scroll-behavior: smooth; }
   
   .nav-item { 
-    padding: 10px 16px; 
+    padding: 8px 12px; 
     border-radius: 8px; 
     cursor: pointer; 
     display: flex; 
@@ -181,8 +185,10 @@ const createStyles = (isDarkMode) => {
     transition: all 0.3s; 
     color: var(--text-muted); 
     font-weight: 500; 
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    flex: 0 0 auto;
   }
   .nav-item:hover { 
     background: rgba(0, 132, 217, 0.08); 
@@ -195,10 +201,10 @@ const createStyles = (isDarkMode) => {
     font-weight: 600;
   }
 
-  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-right { display: flex; align-items: center; gap: 12px; z-index: 20; flex: 0 0 auto; }
   
-  .status-indicator { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; font-size: 0.8rem; color: var(--success-light); }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: glow 2s infinite; }
+  .status-indicator { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.22); border-radius: 6px; font-size: 0.75rem; color: var(--success-light); min-width: 60px; justify-content: center; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: glow 2s infinite; }
 
   .theme-toggle-nav { 
     padding: 8px; 
@@ -207,7 +213,7 @@ const createStyles = (isDarkMode) => {
     color: var(--text-muted); 
     cursor: pointer; 
     transition: all 0.2s;
-    width: 36px; height: 36px;
+    width: 34px; height: 34px;
     display: flex; align-items: center; justify-content: center;
   }
   .theme-toggle-nav:hover { background: rgba(0, 132, 217, 0.15); color: var(--primary); }
@@ -235,8 +241,6 @@ const createStyles = (isDarkMode) => {
 
   .content-wrapper {
     width: 100%;
-    max-width: 1600px; /* Wide content area */
-    margin: 0 auto;
     padding: 2rem;
     display: flex;
     flex-direction: column;
@@ -777,6 +781,47 @@ const createStyles = (isDarkMode) => {
     #landing-page h1 { font-size: 2.5rem; }
   }
 `;
+};
+    
+// --- DISCHARGE SUMMARY PAGE ---
+const DischargeSummaryPage = ({ discharges = [] }) => {
+  return (
+    <div className="page-grid">
+      <div className="panel" style={{gridColumn: '1 / -1'}}>
+        <h2 className="font-bold text-2xl mb-2">Discharge Summaries</h2>
+        <p className="text-muted mb-4">Recent patient discharges and summaries across the network</p>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Facility</th>
+                <th>Discharge Date</th>
+                <th>Summary</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {discharges.length > 0 ? discharges.map(d => (
+                <tr key={d.id}>
+                  <td><strong>{d.patient}</strong></td>
+                  <td>{d.facility}</td>
+                  <td>{d.date}</td>
+                  <td className="text-sm text-dim">{d.summary}</td>
+                  <td>
+                    <button className="btn-ghost" style={{padding: '6px 10px', fontSize: '0.85rem'}}>View</button>
+                    <button className="btn" style={{marginLeft:8, padding: '6px 10px', fontSize: '0.85rem'}}>Export</button>
+                  </td>
+                </tr>
+              )) : (
+                <tr><td colSpan={5} style={{padding:'2rem', textAlign:'center', color:'var(--text-muted)'}}>No discharges available</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 // --- 2. MOCK DATA ---
@@ -1774,7 +1819,7 @@ export default function App() {
   const [view, setView] = useState('landing');
   const [loading, setLoading] = useState(false);
   const [activeNav, setActiveNav] = useState('dashboard');
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   // State
   const [hospitals, setHospitals] = useState([]);
@@ -1830,6 +1875,15 @@ export default function App() {
     };
     return stats;
   };
+
+  // Sample discharges generated from hospitals (demo)
+  const sampleDischarges = hospitals.length ? hospitals.map((h, i) => ({
+    id: `d-${i}`,
+    patient: `Patient ${i + 1}`,
+    facility: h.name,
+    date: new Date(Date.now() - i * 86400000).toLocaleDateString(),
+    summary: `Discharged after stabilization. Follow-up in 7 days at ${h.name}.`
+  })) : [];
 
   // Enhanced Chat Logic
   const handleChat = async (text) => {
@@ -1913,12 +1967,16 @@ export default function App() {
                 <i className="fa-solid fa-heart-pulse fa-lg"></i>
                 <span>CareSync</span>
               </div>
+            </div>
+
+            <div className="nav-center">
               <div className="nav-menu">
                 {[
                   { id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
                   { id: 'facilities', label: 'Facilities', icon: 'fa-hospital' },
                   { id: 'inventory', label: 'Inventory', icon: 'fa-boxes-stacked' },
-                  { id: 'alerts', label: 'Alerts', icon: 'fa-bell' }
+                  { id: 'alerts', label: 'Alerts', icon: 'fa-bell' },
+                  { id: 'discharge', label: 'Discharge Summary', icon: 'fa-file-medical' }
                 ].map(item => (
                   <div
                     key={item.id}
@@ -2072,6 +2130,8 @@ export default function App() {
 
               {/* ALERTS PAGE */}
               {activeNav === 'alerts' && <AlertsPage hospitals={hospitals} stats={stats} />}
+              {/* DISCHARGE SUMMARY PAGE */}
+              {activeNav === 'discharge' && <DischargeSummaryPage discharges={sampleDischarges} />}
             </div>
             
             <Footer />
