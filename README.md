@@ -1,5 +1,6 @@
 # 🏥 CareSync AI  
-## Autonomous Healthcare Supply Chain Intelligence Platform
+## Autonomous Healthcare Operations Intelligence Platform
+
 
 
 ![CareSync AI](caresync.png)
